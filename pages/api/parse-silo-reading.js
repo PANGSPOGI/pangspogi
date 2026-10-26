@@ -1,7 +1,8 @@
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
-const VALID_HOUSE_NUMBERS = new Set([
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const VALID_HOUSE_NUMBERS = [
   1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-]);
+];
 
 export const config = {
   maxDuration: 60,
@@ -19,20 +20,20 @@ function requestError(message, statusCode) {
 }
 
 function isValidDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00.000Z`);
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function validateImageDataUrl(value) {
   if (typeof value !== 'string') requestError('Choose a silo reading image to upload.', 400);
-  const match = value.match(/^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/);
+  const match = value.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/);
   if (!match) requestError('Upload a JPEG, PNG, or WebP image.', 400);
-  const imageBytes = Buffer.from(match[1], 'base64');
+  const imageBytes = Buffer.from(match[2], 'base64');
   if (imageBytes.length === 0 || imageBytes.length > MAX_IMAGE_BYTES) {
     requestError('The image is empty or too large. Choose a smaller photo.', 400);
   }
-  return value;
+  return { mimeType: match[1], data: match[2] };
 }
 
 function validateRecognition(result) {
@@ -55,21 +56,17 @@ function validateRecognition(result) {
     if (
       !reading ||
       typeof reading !== 'object' ||
-      !VALID_HOUSE_NUMBERS.has(reading.houseNumber) ||
+      !VALID_HOUSE_NUMBERS.includes(reading.houseNumber) ||
       !['Silo1', 'Silo2'].includes(reading.silo) ||
       !['level', 'empty', 'full', 'unreadable'].includes(reading.mark) ||
-      (reading.fillLevelPercent !== null &&
-        (!Number.isFinite(reading.fillLevelPercent) ||
-          reading.fillLevelPercent < 0 ||
-          reading.fillLevelPercent > 100)) ||
-      (reading.mark === 'unreadable'
-        ? reading.fillLevelPercent !== null
-        : reading.fillLevelPercent === null) ||
-      (reading.mark === 'empty' && reading.fillLevelPercent !== 0) ||
-      (reading.mark === 'full' && reading.fillLevelPercent !== 100) ||
+      !Number.isFinite(reading.fillLevelPercent) ||
+      reading.fillLevelPercent < 0 ||
+      reading.fillLevelPercent > 100 ||
       !Number.isFinite(reading.confidence) ||
       reading.confidence < 0 ||
-      reading.confidence > 1
+      reading.confidence > 1 ||
+      (reading.mark === 'empty' && reading.fillLevelPercent !== 0) ||
+      (reading.mark === 'full' && reading.fillLevelPercent !== 100)
     ) {
       requestError('The image reader returned invalid silo data. Please try another photo.', 502);
     }
@@ -84,7 +81,7 @@ function validateRecognition(result) {
       house: `FH${reading.houseNumber}`,
       silo: reading.silo,
       mark: reading.mark,
-      fillLevelPercent: reading.fillLevelPercent,
+      fillLevelPercent: reading.mark === 'unreadable' ? null : reading.fillLevelPercent,
       confidence: reading.confidence,
     };
   });
@@ -93,16 +90,48 @@ function validateRecognition(result) {
 }
 
 function extractOutputText(response) {
-  if (typeof response.output_text === 'string') return response.output_text;
-  const textBlocks = [];
-  (Array.isArray(response.output) ? response.output : []).forEach((item) => {
-    (item && Array.isArray(item.content) ? item.content : []).forEach((content) => {
-      if (content.type === 'output_text' && typeof content.text === 'string') {
-        textBlocks.push(content.text);
-      }
-    });
-  });
-  return textBlocks.join('');
+  const candidate = response.candidates && response.candidates[0];
+  const parts = candidate && candidate.content && candidate.content.parts;
+  if (!Array.isArray(parts)) return '';
+  return parts
+    .filter((part) => part && typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('');
+}
+
+function getGeminiSchema() {
+  return {
+    type: 'OBJECT',
+    properties: {
+      date: { type: 'STRING' },
+      time: { type: 'STRING' },
+      readings: {
+        type: 'ARRAY',
+        maxItems: 12,
+        items: {
+          type: 'OBJECT',
+          properties: {
+            houseNumber: { type: 'INTEGER', enum: VALID_HOUSE_NUMBERS },
+            silo: { type: 'STRING', enum: ['Silo1', 'Silo2'] },
+            mark: {
+              type: 'STRING',
+              enum: ['level', 'empty', 'full', 'unreadable'],
+            },
+            fillLevelPercent: { type: 'NUMBER' },
+            confidence: { type: 'NUMBER' },
+          },
+          required: [
+            'houseNumber',
+            'silo',
+            'mark',
+            'fillLevelPercent',
+            'confidence',
+          ],
+        },
+      },
+    },
+    required: ['date', 'time', 'readings'],
+  };
 }
 
 export default async function handler(req, res) {
@@ -112,11 +141,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      requestError('Image reading is not configured. Add OPENAI_API_KEY to the server environment.', 503);
+    if (!process.env.GEMINI_API_KEY) {
+      requestError('Image reading is not configured. Add GEMINI_API_KEY to the server environment.', 503);
     }
 
-    const imageDataUrl = validateImageDataUrl(req.body && req.body.imageDataUrl);
+    const image = validateImageDataUrl(req.body && req.body.imageDataUrl);
     const prompt = [
       'Read this photo of one page of a printed silo inventory form.',
       'The form has six house groups and two silos per house. Read only house and silo labels visible on the page.',
@@ -126,103 +155,65 @@ export default async function handler(req, res) {
       '- level: a hand-drawn horizontal or curved feed surface; estimate its vertical position as fillLevelPercent, where 0 is the very bottom of the silo and 100 is the very top.',
       '- empty: the word EMPTY or a clearly empty silo; use fillLevelPercent 0.',
       '- full: the word FULL or a clearly full silo; use fillLevelPercent 100.',
-      '- unreadable: a cross-out, missing mark, or unclear reading; use null.',
+      '- unreadable: a cross-out, missing mark, or unclear reading; use fillLevelPercent 0.',
       'Ignore feed-type notes and small open/closed marks above the silo. A crossed-out silo is unreadable, not empty.',
       'Do not invent unreadable house numbers or silos. Confidence is a number from 0 to 1 for the reading mark and level.',
     ].join('\n');
 
     let response;
     try {
-      response = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-6-astra',
-          input: [{
-            role: 'user',
-            content: [
-              { type: 'input_text', text: prompt },
-              { type: 'input_image', image_url: imageDataUrl, detail: 'high' },
-            ],
-          }],
-          text: {
-            format: {
-              type: 'json_schema',
-              name: 'silo_reading',
-              strict: true,
-              schema: {
-                type: 'object',
-                additionalProperties: false,
-                required: ['date', 'time', 'readings'],
-                properties: {
-                  date: { type: 'string' },
-                  time: { type: 'string' },
-                  readings: {
-                    type: 'array',
-                    maxItems: 12,
-                    items: {
-                      type: 'object',
-                      additionalProperties: false,
-                      required: [
-                        'houseNumber',
-                        'silo',
-                        'mark',
-                        'fillLevelPercent',
-                        'confidence',
-                      ],
-                      properties: {
-                        houseNumber: {
-                          type: 'integer',
-                          enum: [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-                        },
-                        silo: { type: 'string', enum: ['Silo1', 'Silo2'] },
-                        mark: {
-                          type: 'string',
-                          enum: ['level', 'empty', 'full', 'unreadable'],
-                        },
-                        fillLevelPercent: {
-                          type: ['number', 'null'],
-                        },
-                        confidence: { type: 'number' },
-                      },
-                    },
-                  },
-                },
-              },
-            },
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'x-goog-api-key': process.env.GEMINI_API_KEY,
+            'Content-Type': 'application/json',
           },
-        }),
-        signal: AbortSignal.timeout(55000),
-      });
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: image.mimeType, data: image.data } },
+              ],
+            }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: getGeminiSchema(),
+            },
+          }),
+          signal: AbortSignal.timeout(55000),
+        }
+      );
     } catch (error) {
-      console.error('Silo image recognition request failed:', error.message);
-      requestError('Could not reach the image-reading service. Please try again.', 502);
+      console.error('Gemini silo image recognition request failed:', error.message);
+      requestError('Could not reach Gemini. Please try again.', 502);
     }
 
     let providerResult;
     try {
       providerResult = await response.json();
     } catch (error) {
-      console.error('Silo image recognition returned invalid JSON:', error.message);
-      requestError('The image-reading service returned an invalid response. Please try again.', 502);
+      console.error('Gemini silo image recognition returned invalid JSON:', error.message);
+      requestError('Gemini returned an invalid response. Please try again.', 502);
     }
     if (!response.ok) {
-      console.error('Silo image recognition request was rejected:', {
+      console.error('Gemini silo image recognition request was rejected:', {
         status: response.status,
-        code: providerResult && providerResult.error && providerResult.error.code,
+        statusText: providerResult && providerResult.error && providerResult.error.status,
       });
-      requestError('The image-reading service could not process this photo. Please try again.', 502);
+      requestError('Gemini could not process this photo. Check the API key and Gemini API quota, then try again.', 502);
     }
 
     let recognized;
     try {
-      recognized = JSON.parse(extractOutputText(providerResult));
+      const outputText = extractOutputText(providerResult);
+      if (!outputText) throw new Error('Gemini returned no text.');
+      recognized = JSON.parse(outputText);
     } catch (error) {
-      console.error('Silo image recognition returned invalid reading data:', error.message);
-      requestError('The image-reading service could not read this form. Please try a clearer photo.', 502);
+      console.error('Gemini silo image recognition returned invalid reading data:', error.message);
+      requestError('Gemini could not read this form. Please try a clearer photo.', 502);
     }
 
     return res.status(200).json(validateRecognition(recognized));
