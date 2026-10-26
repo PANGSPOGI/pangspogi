@@ -180,6 +180,137 @@
 
     .custom-alert-modal { max-width: 420px; text-align: center; padding: 25px; border: 3px solid #000; border-radius: 12px; background: #fff; }
     .warning-icon { font-size: 48px; color: #dc2626; margin-bottom: 10px; }
+
+    :root {
+      color-scheme: light;
+      --ink: #17251f;
+      --muted: #708078;
+      --line: #e3eae5;
+      --surface: #ffffff;
+      --canvas: #f3f7f4;
+      --green: #19734b;
+      --green-dark: #124d35;
+      --green-soft: #e6f4eb;
+      --shadow: 0 12px 32px rgba(28, 54, 40, 0.07);
+    }
+
+    body { background: var(--canvas); color: var(--ink); }
+    .header {
+      min-height: 72px;
+      padding: 14px max(24px, calc((100vw - 1440px) / 2));
+      background: rgba(18, 77, 53, 0.97);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 4px 18px rgba(18, 54, 37, .16);
+      backdrop-filter: blur(12px);
+    }
+    .header-title { font-size: 17px; letter-spacing: .7px; }
+    .sync-indicator { padding: 6px 11px; border: 1px solid rgba(255,255,255,.18); background: #236b4d; letter-spacing: .4px; }
+    .sync-indicator.unsaved { background: #a94338; }
+    .sync-indicator.syncing { background: #a96a22; }
+    .close-btn { border: 1px solid rgba(255,255,255,.2); border-radius: 9px; background: rgba(255,255,255,.1); transition: background .18s, transform .18s; }
+    .close-btn:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+
+    .main-content { max-width: 1480px; padding: 28px 24px 120px; text-align: left; }
+    .dashboard-intro { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin: 4px 0 22px; }
+    .dashboard-eyebrow { margin-bottom: 7px; color: var(--green); font-size: 11px; font-weight: 900; letter-spacing: 1.4px; text-transform: uppercase; }
+    .dashboard-intro h1 { color: var(--ink); font-size: clamp(25px, 3vw, 34px); line-height: 1.1; font-weight: 850; letter-spacing: -.8px; }
+    .dashboard-intro p { margin-top: 8px; color: var(--muted); font-size: 14px; }
+    .top-bar { padding: 16px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+    .meta-inputs { gap: 10px; }
+    .meta-field { gap: 8px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: #fbfdfb; color: var(--muted); font-size: 12px; }
+    .meta-field input { width: 138px; border: 0; border-bottom: 1px solid #cad8ce; color: var(--ink); font-size: 13px; }
+    .filter-group { flex-wrap: wrap; gap: 9px; color: var(--muted); font-size: 12px; }
+    .btn-group { padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: #f5f8f6; }
+    .btn-group-opt { padding: 8px 11px; border: 0; border-radius: 7px; background: transparent; color: #52645a; font-size: 11px; transition: background .18s, color .18s, box-shadow .18s; }
+    .btn-group-opt.active { background: var(--green); color: #fff; box-shadow: 0 3px 8px rgba(25,115,75,.22); }
+    .house-search { display: flex; align-items: center; gap: 8px; min-width: 210px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+    .house-search span { color: #829188; font-size: 15px; }
+    .house-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); font: inherit; font-size: 12px; }
+    .dashboard-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; }
+    .stat-card { min-height: 92px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-align: left; box-shadow: 0 6px 20px rgba(28,54,40,.04); transition: transform .18s, box-shadow .18s, border-color .18s; }
+    button.stat-card { cursor: pointer; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: #c4d9cb; }
+    .stat-card.active { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green), var(--shadow); }
+    .stat-label { display: block; color: var(--muted); font-size: 11px; font-weight: 750; }
+    .stat-value { display: block; margin-top: 8px; color: var(--ink); font-size: 24px; font-weight: 850; letter-spacing: -.5px; }
+    .stat-note { display: block; margin-top: 3px; color: #85938a; font-size: 10px; }
+    .filter-feedback { display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin: 0 2px 8px; color: var(--muted); font-size: 11px; }
+    .filter-feedback button { padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--green); font: inherit; font-weight: 800; cursor: pointer; }
+    .sheet-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .house-box { position: relative; overflow: hidden; padding: 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: 0 5px 20px rgba(28,54,40,.04); text-align: left; transition: transform .18s, box-shadow .18s, border-color .18s; }
+    .house-box:hover { transform: translateY(-2px); border-color: #cbdccf; box-shadow: var(--shadow); }
+    .house-box[hidden] { display: none; }
+    .house-box::before { position: absolute; inset: 0 auto 0 0; width: 3px; background: #3c9b6a; content: ""; opacity: .8; }
+    .house-box[data-status="CRITICAL"]::before { background: #d97734; }
+    .house-box[data-status="EMPTY"]::before { background: #d74c4c; }
+    .house-title { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; padding: 0 0 10px 3px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 15px; letter-spacing: .2px; }
+    .house-status-pill { padding: 4px 8px; border-radius: 20px; font-size: 8px; letter-spacing: .3px; }
+    .placement-box { justify-content: flex-start; margin-bottom: 9px; padding: 7px 9px; border: 1px solid #edf1ee; border-radius: 8px; background: #f9fbf9; color: var(--muted); }
+    .placement-box input { margin-left: auto; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+    .silo-pair { justify-content: center; gap: 8px; }
+    .silo-unit { width: min(48%, 168px); padding: 8px 7px 7px; border: 1px solid #edf1ee; border-radius: 11px; background: #fbfdfb; }
+    .canvas-container { width: min(100%, 142px); height: 178px; border-radius: 8px; background: linear-gradient(180deg, #f7faf8, #fff); }
+    .silo-label-box { margin: 1px 0 5px; padding: 4px 8px; border: 0; border-radius: 6px; background: #e9f3ec; color: var(--green-dark); font-size: 10px; }
+    .status-badge { padding: 4px 8px; border: 0; border-radius: 20px; font-size: 9px; letter-spacing: .35px; }
+    .status-safe { background: #e2f3e8; color: #1d7547; }
+    .status-moderate { background: #e3f0f7; color: #216487; }
+    .status-critical { background: #fff0e2; color: #a85a1d; }
+    .status-empty { background: #fde9e7; color: #ae3932; }
+    .status-closetoempty { background: #eee8fb; color: #5b45a1; }
+    .readout-box { margin: 4px 0 9px; color: var(--ink); font-size: 11px; font-weight: 800; }
+    .mini-actions { gap: 5px; }
+    .btn-mini { min-height: 28px; padding: 5px 3px; border: 1px solid transparent; border-radius: 7px; font-size: 9px; transition: filter .18s, transform .18s; }
+    .btn-mini:hover { filter: brightness(.97); transform: translateY(-1px); }
+    .btn-add { background: #e5f3eb; color: #187047; border-color: #cce4d5; }
+    .btn-sub { background: #fff3e2; color: #9a5c1e; border-color: #f0dfc6; }
+    .btn-empty { background: #fce9e7; color: #a83b34; border-color: #f0cfcb; }
+    .global-actions { z-index: 30; bottom: 12px; margin-top: 24px; padding: 10px; border: 1px solid rgba(219,230,222,.9); border-radius: 15px; background: rgba(255,255,255,.91); box-shadow: 0 10px 34px rgba(29,54,40,.16); backdrop-filter: blur(14px); }
+    .btn-lg { min-height: 42px; padding: 10px 16px; border: 1px solid transparent; border-radius: 9px; font-size: 12px; transition: transform .16s, box-shadow .16s, background .16s; }
+    .btn-lg:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(20,50,34,.13); }
+    .btn-update { background: #e4f1e9; color: var(--green-dark); }
+    .btn-clear { border-color: var(--line); background: #fff; color: #45574c; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-forecast { background: #dceee2; color: #195c3a; }
+    .modal-overlay { background: rgba(16,32,23,.58); backdrop-filter: blur(4px); }
+    .modal-box { border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 24px 70px rgba(0,0,0,.22); }
+    .empty-state { grid-column: 1 / -1; display: grid; gap: 7px; padding: 42px 18px; border: 1px dashed #cbd9ce; border-radius: 14px; background: rgba(255,255,255,.65); color: var(--ink); text-align: center; }
+    .empty-state span { color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 1050px) {
+      .sheet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filter-group { justify-content: flex-start; }
+      .house-search { min-width: 180px; }
+    }
+    @media (max-width: 700px) {
+      .header { min-height: 62px; padding: 12px 15px; }
+      .header-title { gap: 7px; font-size: 13px; }
+      .sync-indicator { padding: 5px 8px; font-size: 9px; }
+      .main-content { padding: 20px 13px 110px; }
+      .dashboard-intro { margin-bottom: 15px; }
+      .dashboard-intro p { font-size: 12px; }
+      .top-bar { padding: 12px; border-radius: 13px; }
+      .meta-inputs { width: 100%; justify-content: space-between; }
+      .meta-field { flex: 1; padding: 8px; font-size: 10px; }
+      .meta-field input { width: 100%; min-width: 0; font-size: 11px; }
+      .filter-group { width: 100%; }
+      .filter-group > label { width: 100%; }
+      .btn-group { flex: 1; }
+      .btn-group-opt { flex: 1; padding: 8px 5px; font-size: 9px; }
+      .house-search { flex: 1 1 100%; }
+      .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 13px; }
+      .stat-card { min-height: 78px; padding: 11px 13px; border-radius: 11px; }
+      .stat-value { margin-top: 5px; font-size: 20px; }
+      .sheet-grid { grid-template-columns: 1fr; gap: 10px; }
+      .house-box { padding: 12px; border-radius: 12px; }
+      .silo-unit { width: min(48%, 190px); }
+      .canvas-container { height: 170px; }
+      .global-actions { bottom: 7px; gap: 6px; padding: 8px; border-radius: 12px; }
+      .btn-lg { min-height: 38px; padding: 8px 10px; font-size: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
@@ -193,6 +324,13 @@
   </div>
 
   <div class="main-content">
+    <div class="dashboard-intro">
+      <div>
+        <div class="dashboard-eyebrow">Farm operations</div>
+        <h1>Silo overview</h1>
+        <p>Monitor feed levels, update readings, and keep every house in sync.</p>
+      </div>
+    </div>
     <div class="top-bar">
       <div class="meta-inputs">
         <div class="meta-field">
@@ -206,13 +344,44 @@
       </div>
 
       <div class="filter-group">
-        <label>Display Filter:</label>
+        <label>Houses</label>
         <div class="btn-group">
           <button class="btn-group-opt active" id="btn_1_12" onclick="setFilter('1-12')">FH 1 to 12</button>
           <button class="btn-group-opt" id="btn_13_19" onclick="setFilter('13-19')">FH 13 to 19</button>
           <button class="btn-group-opt" id="btn_all" onclick="setFilter('ALL')">All Houses</button>
         </div>
+        <label class="house-search" for="houseSearch">
+          <span aria-hidden="true">⌕</span>
+          <input id="houseSearch" type="search" placeholder="Search a house..." oninput="renderHouses()" autocomplete="off">
+        </label>
       </div>
+    </div>
+
+    <div class="dashboard-stats" aria-label="Silo status overview">
+      <button class="stat-card" id="statHouses" onclick="setDashboardStatusFilter('')">
+        <span class="stat-label">Houses in view</span>
+        <span class="stat-value" id="dashboardHouseCount">0</span>
+        <span class="stat-note">Click to clear status filter</span>
+      </button>
+      <button class="stat-card" id="statCritical" onclick="setDashboardStatusFilter('CRITICAL')">
+        <span class="stat-label">Critical silos</span>
+        <span class="stat-value" id="dashboardCriticalCount">0</span>
+        <span class="stat-note">Click to find low feed levels</span>
+      </button>
+      <button class="stat-card" id="statEmpty" onclick="setDashboardStatusFilter('EMPTY')">
+        <span class="stat-label">Empty silos</span>
+        <span class="stat-value" id="dashboardEmptyCount">0</span>
+        <span class="stat-note">Click to show empty houses</span>
+      </button>
+      <div class="stat-card">
+        <span class="stat-label">Average fill level</span>
+        <span class="stat-value" id="dashboardAverageFill">0%</span>
+        <span class="stat-note">Across all tracked silos</span>
+      </div>
+    </div>
+    <div class="filter-feedback">
+      <span id="filterResultText" aria-live="polite">Showing houses</span>
+      <button id="clearDashboardFilters" onclick="clearDashboardFilters()" hidden>Clear filters</button>
     </div>
 
     <div class="sheet-grid" id="housesContainer"></div>
@@ -372,6 +541,7 @@
   <script>
     const allHouseNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
     let activeFilter = '1-12';
+    let activeStatusFilter = '';
     let farmData = {};
     let placementDates = {};
     let customRemarks = {};
@@ -865,14 +1035,114 @@
       renderHouses();
     }
 
-    function renderHouses() {
-      const container = document.getElementById('housesContainer');
-      container.innerHTML = '';
+    function getSiloStatus(silo) {
+      if (!silo || silo.isEmpty || Number(silo.currentKg) <= 0) return 'EMPTY';
+      const pct = Number(silo.currentPct) || 0;
+      if (pct <= 35) return 'CRITICAL';
+      if (pct <= 75) return 'MODERATE';
+      return 'SAFE';
+    }
 
+    function getHouseStatus(silos) {
+      const statuses = silos.map(getSiloStatus);
+      if (statuses.includes('CRITICAL')) return 'CRITICAL';
+      if (statuses.includes('EMPTY')) return 'EMPTY';
+      if (statuses.includes('MODERATE')) return 'MODERATE';
+      return 'SAFE';
+    }
+
+    function getHousesForCurrentView() {
       let targetHouses = [];
       if (activeFilter === '1-12') targetHouses = allHouseNumbers.filter(n => n <= 12);
       else if (activeFilter === '13-19') targetHouses = allHouseNumbers.filter(n => n >= 13);
       else targetHouses = allHouseNumbers;
+
+      const search = (document.getElementById('houseSearch')?.value || '').trim().toLowerCase();
+      return targetHouses.filter(function(num) {
+        const houseKey = `FH${num}`;
+        const silos = farmData[houseKey] || [];
+        if (search && !houseKey.toLowerCase().includes(search)) return false;
+        if (activeStatusFilter && !silos.some(silo => getSiloStatus(silo) === activeStatusFilter)) return false;
+        return true;
+      });
+    }
+
+    function setDashboardStatusFilter(status) {
+      activeStatusFilter = activeStatusFilter === status ? '' : status;
+      renderHouses();
+    }
+
+    function clearDashboardFilters() {
+      activeStatusFilter = '';
+      document.getElementById('houseSearch').value = '';
+      renderHouses();
+    }
+
+    function updateDashboardStats() {
+      let critical = 0;
+      let empty = 0;
+      let totalPct = 0;
+      let siloCount = 0;
+      Object.values(farmData).forEach(function(silos) {
+        silos.forEach(function(silo) {
+          const status = getSiloStatus(silo);
+          if (status === 'CRITICAL') critical++;
+          if (status === 'EMPTY') empty++;
+          totalPct += status === 'EMPTY' ? 0 : (Number(silo.currentPct) || 0);
+          siloCount++;
+        });
+      });
+
+      document.querySelectorAll('#housesContainer .house-box').forEach(function(card) {
+        const silos = farmData[card.dataset.houseKey] || [];
+        const houseStatus = getHouseStatus(silos);
+        card.dataset.status = houseStatus;
+        const pill = card.querySelector('.house-status-pill');
+        if (pill) {
+          pill.className = `house-status-pill status-${houseStatus.toLowerCase()}`;
+          pill.innerText = houseStatus;
+        }
+        card.hidden = !!activeStatusFilter && !silos.some(silo => getSiloStatus(silo) === activeStatusFilter);
+      });
+
+      const visibleHouses = document.querySelectorAll('#housesContainer .house-box:not([hidden])').length;
+      const emptyState = document.querySelector('#housesContainer .empty-state');
+      if (visibleHouses === 0 && !emptyState) {
+        const message = document.createElement('div');
+        message.className = 'empty-state';
+        message.innerHTML = '<strong>No houses match this view</strong><span>Try another house group or clear your search and status filters.</span>';
+        document.getElementById('housesContainer').appendChild(message);
+      } else if (visibleHouses > 0 && emptyState) {
+        emptyState.remove();
+      }
+      document.getElementById('dashboardHouseCount').innerText = visibleHouses;
+      document.getElementById('dashboardCriticalCount').innerText = critical;
+      document.getElementById('dashboardEmptyCount').innerText = empty;
+      document.getElementById('dashboardAverageFill').innerText =
+        `${siloCount ? Math.round(totalPct / siloCount) : 0}%`;
+      document.getElementById('statCritical').classList.toggle('active', activeStatusFilter === 'CRITICAL');
+      document.getElementById('statEmpty').classList.toggle('active', activeStatusFilter === 'EMPTY');
+      document.getElementById('statHouses').classList.toggle('active', !activeStatusFilter);
+
+      const search = (document.getElementById('houseSearch')?.value || '').trim();
+      const resultText = document.getElementById('filterResultText');
+      const clearButton = document.getElementById('clearDashboardFilters');
+      if (resultText) {
+        resultText.innerText = `Showing ${visibleHouses} ${visibleHouses === 1 ? 'house' : 'houses'}${activeStatusFilter ? ` with ${activeStatusFilter.toLowerCase()} silos` : ''}${search ? ` matching “${search}”` : ''}`;
+      }
+      if (clearButton) clearButton.hidden = !activeStatusFilter && !search;
+    }
+
+    function renderHouses() {
+      const container = document.getElementById('housesContainer');
+      container.innerHTML = '';
+
+      const targetHouses = getHousesForCurrentView();
+      if (targetHouses.length === 0) {
+        container.innerHTML = '<div class="empty-state"><strong>No houses match this view</strong><span>Try another house group or clear your search and status filters.</span></div>';
+        updateDashboardStats();
+        return;
+      }
 
       targetHouses.forEach(function(num) {
         const houseKey = `FH${num}`;
@@ -883,8 +1153,11 @@
 
         const houseBox = document.createElement('div');
         houseBox.className = 'house-box';
+        const houseStatus = getHouseStatus(silos);
+        houseBox.dataset.houseKey = houseKey;
+        houseBox.dataset.status = houseStatus;
         houseBox.innerHTML = `
-          <div class="house-title">${houseKey}</div>
+          <div class="house-title"><span>${houseKey}</span><span class="house-status-pill status-${houseStatus.toLowerCase()}">${houseStatus}</span></div>
           <div class="placement-box">
             <label>Placement:</label>
             <input type="date" value="${pDateVal}" onchange="updatePlacementDate('${houseKey}', this.value)">
@@ -921,6 +1194,7 @@
           }, 0);
         });
       });
+      updateDashboardStats();
     }
 
     function drawSiloCanvas(houseKey, idx, canvasId) {
@@ -1119,12 +1393,13 @@
 
       if (readoutEl) readoutEl.innerText = `${kg.toLocaleString()} kg (${pctDisplay}%)`;
       if (badgeEl) { badgeEl.className = `status-badge ${badgeClass}`; badgeEl.innerText = statusText; }
+      updateDashboardStats();
     }
 
     function clearVisibleSilos() {
-      let targetHouses = activeFilter === '1-12' ? allHouseNumbers.filter(n => n <= 12) : activeFilter === '13-19' ? allHouseNumbers.filter(n => n >= 13) : allHouseNumbers;
+      const targetHouses = getHousesForCurrentView().map(num => `FH${num}`);
       targetHouses.forEach(function(num) {
-        const houseKey = `FH${num}`;
+        const houseKey = num;
         delete customRemarks[houseKey];
         farmData[houseKey].forEach(function(s) {
           s.isEmpty = true; s.points = [{ x: 10, y: 192 }, { x: 140, y: 192 }];

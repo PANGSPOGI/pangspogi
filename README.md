@@ -43,6 +43,12 @@ Updating the Apps Script code later requires deploying a new version.
 Google Cloud billing is not required for this Apps Script approach. It remains
 subject to Google Apps Script service quotas.
 
+## Tracker dashboard
+
+The dashboard includes searchable house cards, house-group controls, clickable
+critical/empty status filters, and live silo-level summary counts. The filters
+also limit which houses are affected by **Reset Visible Silos**.
+
 ## Silo profiles
 
 The tracker uses the dimension sheet's profiles and layer weights to draw the
