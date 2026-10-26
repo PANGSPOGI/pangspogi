@@ -1,5 +1,5 @@
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const OPENAI_MODEL = 'gpt-4o-mini';
 const VALID_HOUSE_NUMBERS = [
   1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
 ];
@@ -90,43 +90,34 @@ function validateRecognition(result) {
 }
 
 function extractOutputText(response) {
-  const candidate = response.candidates && response.candidates[0];
-  const parts = candidate && candidate.content && candidate.content.parts;
-  if (!Array.isArray(parts)) return '';
-  return parts
-    .filter((part) => part && typeof part.text === 'string')
-    .map((part) => part.text)
-    .join('');
+  const choice = response.choices && response.choices[0];
+  const content = choice && choice.message && choice.message.content;
+  return typeof content === 'string' ? content : '';
 }
 
-function getGeminiSchema() {
+function getOpenAISchema() {
   return {
-    type: 'OBJECT',
+    type: 'object',
+    additionalProperties: false,
     properties: {
-      date: { type: 'STRING' },
-      time: { type: 'STRING' },
+      date: { type: 'string' },
+      time: { type: 'string' },
       readings: {
-        type: 'ARRAY',
-        maxItems: 12,
+        type: 'array',
         items: {
-          type: 'OBJECT',
+          type: 'object',
+          additionalProperties: false,
           properties: {
-            houseNumber: { type: 'INTEGER' },
-            silo: { type: 'STRING', enum: ['Silo1', 'Silo2'] },
+            houseNumber: { type: 'integer', enum: VALID_HOUSE_NUMBERS },
+            silo: { type: 'string', enum: ['Silo1', 'Silo2'] },
             mark: {
-              type: 'STRING',
+              type: 'string',
               enum: ['level', 'empty', 'full', 'unreadable'],
             },
-            fillLevelPercent: { type: 'NUMBER' },
-            confidence: { type: 'NUMBER' },
+            fillLevelPercent: { type: 'number' },
+            confidence: { type: 'number' },
           },
-          required: [
-            'houseNumber',
-            'silo',
-            'mark',
-            'fillLevelPercent',
-            'confidence',
-          ],
+          required: ['houseNumber', 'silo', 'mark', 'fillLevelPercent', 'confidence'],
         },
       },
     },
@@ -141,8 +132,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      requestError('Image reading is not configured. Add GEMINI_API_KEY to the server environment.', 503);
+    if (!process.env.OPENAI_API_KEY) {
+      requestError('Image reading is not configured. Add OPENAI_API_KEY to the server environment.', 503);
     }
 
     const image = validateImageDataUrl(req.body && req.body.imageDataUrl);
@@ -163,58 +154,77 @@ export default async function handler(req, res) {
     let response;
     try {
       response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        'https://api.openai.com/v1/chat/completions',
         {
           method: 'POST',
           headers: {
-            'x-goog-api-key': process.env.GEMINI_API_KEY,
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            contents: [{
+            model: OPENAI_MODEL,
+            messages: [{
               role: 'user',
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: image.mimeType, data: image.data } },
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${image.mimeType};base64,${image.data}`,
+                    detail: 'high',
+                  },
+                },
               ],
             }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema: getGeminiSchema(),
+            response_format: {
+              type: 'json_schema',
+              json_schema: {
+                name: 'silo_reading',
+                strict: true,
+                schema: getOpenAISchema(),
+              },
             },
           }),
           signal: AbortSignal.timeout(55000),
         }
       );
     } catch (error) {
-      console.error('Gemini silo image recognition request failed:', error.message);
-      requestError('Could not reach Gemini. Please try again.', 502);
+      console.error('OpenAI silo image recognition request failed:', error.message);
+      requestError('Could not reach OpenAI. Please try again.', 502);
     }
 
     let providerResult;
     try {
       providerResult = await response.json();
     } catch (error) {
-      console.error('Gemini silo image recognition returned invalid JSON:', error.message);
-      requestError('Gemini returned an invalid response. Please try again.', 502);
+      console.error('OpenAI silo image recognition returned invalid JSON:', error.message);
+      requestError('OpenAI returned an invalid response. Please try again.', 502);
     }
     if (!response.ok) {
-      console.error('Gemini silo image recognition request was rejected:', {
+      const providerError = providerResult && providerResult.error;
+      console.error('OpenAI silo image recognition request was rejected:', {
         status: response.status,
-        statusText: providerResult && providerResult.error && providerResult.error.status,
-        message: providerResult && providerResult.error && providerResult.error.message,
+        code: providerError && providerError.code,
+        type: providerError && providerError.type,
+        message: providerError && providerError.message,
       });
-      requestError('Gemini could not process this photo. Check the API key and Gemini API quota, then try again.', 502);
+      if (response.status === 401) {
+        requestError('OpenAI rejected the API key. Check the OPENAI_API_KEY server setting.', 502);
+      }
+      if (response.status === 429) {
+        requestError('OpenAI API quota or rate limit reached. Check your OpenAI billing and usage, then try again.', 502);
+      }
+      requestError('OpenAI could not process this photo. Check the API key and OpenAI API access, then try again.', 502);
     }
 
     let recognized;
     try {
       const outputText = extractOutputText(providerResult);
-      if (!outputText) throw new Error('Gemini returned no text.');
+      if (!outputText) throw new Error('OpenAI returned no text.');
       recognized = JSON.parse(outputText);
     } catch (error) {
-      console.error('Gemini silo image recognition returned invalid reading data:', error.message);
-      requestError('Gemini could not read this form. Please try a clearer photo.', 502);
+      console.error('OpenAI silo image recognition returned invalid reading data:', error.message);
+      requestError('OpenAI could not read this form. Please try a clearer photo.', 502);
     }
 
     return res.status(200).json(validateRecognition(recognized));

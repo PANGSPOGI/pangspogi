@@ -36,7 +36,7 @@ the Vercel app. If the deployed app is publicly reachable, its API routes can
 be called by visitors, so restrict app access with Vercel Deployment
 Protection or another authentication layer before using it with real data.
 This is especially important after adding photo reading, because public access
-to that endpoint can consume Gemini API quota or incur charges.
+to that endpoint can consume OpenAI API quota or incur charges.
 
 The spreadsheet keeps the existing `Readings` tab (it is created with headers
 if missing). The app creates a `FeedForecasts` tab on the first forecast save.
@@ -82,16 +82,15 @@ review and edit the detected date, time, and silo fill marks before syncing;
 crossed-out or unreadable silos are left unchanged. Recognized fill heights
 are converted to inventory using the matching silo profile.
 
-Photo reading uses Gemini 2.5 Flash. Add `GEMINI_API_KEY` to the server
+Photo reading uses OpenAI GPT-4o mini. Add `OPENAI_API_KEY` to the server
 environment (for example, Vercel Environment Variables or `.env.local`). In
-Vercel, set the variable name to `GEMINI_API_KEY` and paste the Gemini API key
-itself as its value (not the key name, project name, or project number). Redeploy
-after saving the variable. Keep the key server-side; never put it in browser
-code or chat.
-Uploaded photos are sent to Google for recognition, so do not upload photos
-you are not authorized to share. Gemini API free-tier availability, quotas,
-pricing, and data-use terms depend on Google's current policy and your account;
-check Google's Gemini API pricing and terms before use. Photo recognition
+Vercel, set the variable name to `OPENAI_API_KEY` and paste your OpenAI API key
+itself as its value (not the key name). Redeploy after saving the variable.
+Keep the key server-side; never put it in browser code or chat.
+Uploaded photos are sent to OpenAI for recognition, so do not upload photos
+you are not authorized to share. OpenAI API availability, quotas, pricing, and
+data-use terms depend on OpenAI's current policy and your account; check
+OpenAI's API pricing and terms before use. Photo recognition
 requires this key, while printing does not.
 
 ## Weekly delivery forecast
