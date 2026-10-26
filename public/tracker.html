@@ -1440,6 +1440,15 @@
       const leftX = cx - halfWidth, rightX = cx + halfWidth;
 
       const isDarkTheme = document.body.dataset.theme === 'dark';
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, topY); ctx.lineTo(rightX, bodyTopY); ctx.lineTo(rightX, bodyBotY);
+      ctx.lineTo(cx, botY); ctx.lineTo(leftX, bodyBotY); ctx.lineTo(leftX, bodyTopY);
+      ctx.closePath();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
       ctx.strokeStyle = isDarkTheme ? '#718078' : '#000000'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
       for (let section = 0; section <= profile.cylinderSections; section++) {
         const seamY = bodyTopY + section * profile.cylinderSectionHeight * profileScale;
