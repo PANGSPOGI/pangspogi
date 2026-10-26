@@ -1,5 +1,5 @@
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
-const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const GROQ_MODEL = 'qwen/qwen3.8-27b';
 const VALID_HOUSE_NUMBERS = [
   1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
 ];
@@ -90,39 +90,9 @@ function validateRecognition(result) {
 }
 
 function extractOutputText(response) {
-  const parts = response.candidates && response.candidates[0] &&
-    response.candidates[0].content && response.candidates[0].content.parts;
-  return Array.isArray(parts)
-    ? parts.map((part) => typeof part.text === 'string' ? part.text : '').join('')
-    : '';
-}
-
-function getGeminiSchema() {
-  return {
-    type: 'OBJECT',
-    properties: {
-      date: { type: 'STRING' },
-      time: { type: 'STRING' },
-      readings: {
-        type: 'ARRAY',
-        items: {
-          type: 'OBJECT',
-          properties: {
-            houseNumber: { type: 'INTEGER' },
-            silo: { type: 'STRING', enum: ['Silo1', 'Silo2'] },
-            mark: {
-              type: 'STRING',
-              enum: ['level', 'empty', 'full', 'unreadable'],
-            },
-            fillLevelPercent: { type: 'NUMBER' },
-            confidence: { type: 'NUMBER' },
-          },
-          required: ['houseNumber', 'silo', 'mark', 'fillLevelPercent', 'confidence'],
-        },
-      },
-    },
-    required: ['date', 'time', 'readings'],
-  };
+  const choice = response.choices && response.choices[0];
+  const content = choice && choice.message && choice.message.content;
+  return typeof content === 'string' ? content : '';
 }
 
 export default async function handler(req, res) {
@@ -132,12 +102,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      requestError('Gemini reading is not configured. Add GEMINI_API_KEY to the server environment, or use on-device OCR.', 503);
+    if (!process.env.GROQ_API_KEY) {
+      requestError('Groq reading is not configured. Add GROQ_API_KEY to the server environment, or use on-device OCR.', 503);
     }
 
     const image = validateImageDataUrl(req.body && req.body.imageDataUrl);
     const prompt = [
+      'Return only a valid JSON object with exactly these top-level fields: date, time, readings.',
+      'Each reading must contain houseNumber (integer), silo (Silo1 or Silo2), mark (level, empty, full, or unreadable), fillLevelPercent (number), and confidence (number from 0 to 1).',
       'Read this photo of one page of a printed silo inventory form.',
       'The form has six house groups and two silos per house. Read only house and silo labels visible on the page.',
       'Valid house numbers are 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, and 19; there is no FH07.',
@@ -155,73 +127,75 @@ export default async function handler(req, res) {
     let response;
     try {
       response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
           method: 'POST',
           headers: {
+            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
             'Content-Type': 'application/json',
-            'x-goog-api-key': process.env.GEMINI_API_KEY,
           },
           body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: image.mimeType, data: image.data } },
+            model: GROQ_MODEL,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${image.mimeType};base64,${image.data}`,
+                    detail: 'high',
+                  },
+                },
               ],
             }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema: getGeminiSchema(),
-              temperature: 0.1,
-              maxOutputTokens: 8192,
-            },
+            response_format: { type: 'json_object' },
+            temperature: 0.1,
+            max_completion_tokens: 4096,
           }),
           signal: AbortSignal.timeout(55000),
         }
       );
     } catch (error) {
-      console.error('Gemini silo image recognition request failed:', error.message);
-      requestError('Could not reach Gemini. Please try again.', 502);
+      console.error('Groq silo image recognition request failed:', error.message);
+      requestError('Could not reach Groq. Please try again.', 502);
     }
 
     let providerResult;
     try {
       providerResult = await response.json();
     } catch (error) {
-      console.error('Gemini silo image recognition returned invalid JSON:', error.message);
-      requestError('Gemini returned an invalid response. Please try again.', 502);
+      console.error('Groq silo image recognition returned invalid JSON:', error.message);
+      requestError('Groq returned an invalid response. Please try again.', 502);
     }
     if (!response.ok) {
       const providerError = providerResult && providerResult.error;
-      console.error('Gemini silo image recognition request was rejected:', {
+      console.error('Groq silo image recognition request was rejected:', {
         status: response.status,
         code: providerError && providerError.code,
-        providerStatus: providerError && providerError.status,
+        type: providerError && providerError.type,
         message: providerError && providerError.message,
       });
-      if (
-        response.status === 401 ||
-        (response.status === 400 && /api.?key|key not valid/i.test((providerError && providerError.message) || ''))
-      ) {
-        requestError('Gemini rejected the API key. Check the GEMINI_API_KEY server setting.', 502);
+      if (response.status === 401) {
+        requestError('Groq rejected the API key. Check the GROQ_API_KEY server setting.', 502);
       }
       if (response.status === 429) {
-        requestError('Gemini free-tier quota or rate limit reached. Wait and try again, or use on-device OCR.', 502);
+        requestError('Groq rate or usage limit reached. Check your Groq console limits, or use on-device OCR.', 502);
       }
-      if (response.status === 403) {
-        requestError('Gemini API access is not available for this key or project. Check the Gemini API settings, or use on-device OCR.', 502);
+      if (response.status === 413) {
+        requestError('The photo is too large for Groq. Choose a smaller photo, or use on-device OCR.', 502);
       }
-      requestError('Gemini could not process this photo. Check the API key and Gemini API access, then try again.', 502);
+      requestError('Groq could not process this photo. Check the API key, account limits, and model access, then try again.', 502);
     }
 
     let recognized;
     try {
       const outputText = extractOutputText(providerResult);
-      if (!outputText) throw new Error('Gemini returned no text.');
+      if (!outputText) throw new Error('Groq returned no text.');
       recognized = JSON.parse(outputText);
     } catch (error) {
-      console.error('Gemini silo image recognition returned invalid reading data:', error.message);
-      requestError('Gemini could not read this form. Please try a clearer photo.', 502);
+      console.error('Groq silo image recognition returned invalid reading data:', error.message);
+      requestError('Groq could not read this form. Please try a clearer photo.', 502);
     }
 
     return res.status(200).json(validateRecognition(recognized));

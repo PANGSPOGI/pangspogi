@@ -756,7 +756,7 @@
   <div class="modal-overlay" id="siloReadingModal" onclick="if(event.target===this && !isReadingSiloPhoto) closeSiloReadingModal()">
     <div class="modal-box silo-reading-dialog">
       <h3 id="siloReadingTitle">Upload silo reading</h3>
-      <p id="siloReadingDescription">Select up to three report photos. On-device OCR keeps them in your browser and defaults silo levels to empty; change any silo that has a hand-drawn line. Gemini can interpret the marks using its free-tier quota.</p>
+      <p id="siloReadingDescription">Select up to three report photos. On-device OCR keeps them in your browser and defaults silo levels to empty; change any silo that has a hand-drawn line. Groq AI can interpret the marks; account limits may apply.</p>
       <input id="siloReadingFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden onchange="selectSiloReadingImages(this.files)">
       <div class="silo-upload-landing" id="siloUploadLanding">
         <div class="silo-upload-dropzone" id="siloUploadDropzone" role="button" tabindex="0" aria-label="Choose or drop a silo reading photo">
@@ -772,7 +772,7 @@
         <div class="silo-reading-actions">
           <button class="btn-lg btn-clear" type="button" onclick="closeSiloReadingModal()">Cancel</button>
           <button class="btn-lg btn-primary" id="siloReadingOcrButton" type="button" onclick="processSelectedSiloReading('ocr')" disabled>Read on this device (free OCR)</button>
-          <button class="btn-lg btn-clear" id="siloReadingGeminiButton" type="button" onclick="processSelectedSiloReading('gemini')" disabled>Use Gemini (free tier)</button>
+          <button class="btn-lg btn-clear" id="siloReadingGroqButton" type="button" onclick="processSelectedSiloReading('groq')" disabled>Read with Groq AI</button>
         </div>
       </div>
       <div class="silo-reading-status" id="siloReadingStatus" role="status" aria-live="polite" hidden></div>
@@ -1077,7 +1077,7 @@
       document.getElementById('siloReadingStatus').hidden = true;
       document.getElementById('siloReadingTitle').innerText = 'Upload silo reading';
       document.getElementById('siloReadingDescription').innerText =
-        'Select up to three report photos. On-device OCR keeps them in your browser and defaults silo levels to empty; change any silo that has a hand-drawn line. Gemini can interpret the marks using its free-tier quota.';
+        'Select up to three report photos. On-device OCR keeps them in your browser and defaults silo levels to empty; change any silo that has a hand-drawn line. Groq AI can interpret the marks; account limits may apply.';
       document.getElementById('siloReadingModal').style.display = 'flex';
     }
 
@@ -1150,7 +1150,7 @@
         }).join('\n');
       document.getElementById('siloUploadFilePreview').hidden = false;
       document.getElementById('siloReadingOcrButton').disabled = false;
-      document.getElementById('siloReadingGeminiButton').disabled = false;
+      document.getElementById('siloReadingGroqButton').disabled = false;
       document.getElementById('siloReadingStatus').hidden = true;
       input.value = '';
     }
@@ -1163,7 +1163,7 @@
       if (preview) preview.removeAttribute('src');
       const previewBox = document.getElementById('siloUploadFilePreview');
       if (previewBox) previewBox.hidden = true;
-      ['siloReadingOcrButton', 'siloReadingGeminiButton'].forEach(function(id) {
+      ['siloReadingOcrButton', 'siloReadingGroqButton'].forEach(function(id) {
         const button = document.getElementById(id);
         if (button) button.disabled = true;
       });
@@ -1211,7 +1211,7 @@
         script.onload = function() {
           if (!window.Tesseract) {
             tesseractLoadPromise = null;
-            reject(new Error('On-device OCR could not start. Check your internet connection, then try Gemini or try again.'));
+            reject(new Error('On-device OCR could not start. Check your internet connection, then try Groq AI or try again.'));
             return;
           }
           resolve(window.Tesseract);
@@ -1281,7 +1281,7 @@
           });
         });
       if (!readings.length) {
-        throw new Error('OCR could not identify any FH house labels. Try a clearer, straight-on photo or use Gemini.');
+        throw new Error('OCR could not identify any FH house labels. Try a clearer, straight-on photo or use Groq AI.');
       }
       return {
         date: getSiloOcrDate(text),
@@ -1299,16 +1299,16 @@
       document.getElementById('siloReadingReview').hidden = true;
       document.getElementById('siloReadingStatus').hidden = false;
       document.getElementById('siloReadingOcrButton').disabled = true;
-      document.getElementById('siloReadingGeminiButton').disabled = true;
+      document.getElementById('siloReadingGroqButton').disabled = true;
 
       try {
         const results = [];
         for (let index = 0; index < files.length; index++) {
           if (mode === 'ocr') {
             results.push(await readSiloReadingWithOcr(files[index], index + 1, files.length));
-          } else if (mode === 'gemini') {
+          } else if (mode === 'groq') {
             const imageDataUrl = await compressSiloReadingImage(files[index]);
-            setSiloReadingStatus(`Sending photo ${index + 1} of ${files.length} to Gemini. Free-tier limits apply...`, false);
+            setSiloReadingStatus(`Sending photo ${index + 1} of ${files.length} to Groq AI. Account limits may apply...`, false);
             const response = await fetch('/api/parse-silo-reading', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1318,17 +1318,17 @@
             try {
               responseBody = await response.json();
             } catch (error) {
-              throw new Error('Gemini returned an unreadable response. Please try again or use on-device OCR.');
+              throw new Error('Groq AI returned an unreadable response. Please try again or use on-device OCR.');
             }
             if (!response.ok || (responseBody && responseBody.error)) {
               throw new Error(responseBody && responseBody.error ? responseBody.error : 'Unable to read the silo report.');
             }
             results.push(responseBody);
           } else {
-            throw new Error('Choose on-device OCR or Gemini to read the photos.');
+            throw new Error('Choose on-device OCR or Groq AI to read the photos.');
           }
         }
-        const result = mergeSiloReadingResults(results, mode === 'ocr' ? 'device-ocr' : 'gemini');
+        const result = mergeSiloReadingResults(results, mode === 'ocr' ? 'device-ocr' : 'groq');
         showSiloReadingReview(result);
       } catch (error) {
         document.getElementById('siloUploadLanding').hidden = false;
@@ -1336,7 +1336,7 @@
       } finally {
         isReadingSiloPhoto = false;
         document.getElementById('siloReadingOcrButton').disabled = !selectedSiloReadingFiles.length;
-        document.getElementById('siloReadingGeminiButton').disabled = !selectedSiloReadingFiles.length;
+        document.getElementById('siloReadingGroqButton').disabled = !selectedSiloReadingFiles.length;
       }
     }
 
@@ -1396,7 +1396,7 @@
       document.getElementById('siloReadingTitle').innerText = 'Review silo photo reading';
       document.getElementById('siloReadingDescription').innerText = result.reader === 'device-ocr'
         ? 'On-device OCR found the house labels and date/time. The photo stayed in your browser. OCR cannot see feed lines, so rows start at empty (0%); enter the fill level anywhere you see a line.'
-        : 'Gemini read the photos. A missing line or an EMPTY mark is set to empty. Correct anything that looks wrong before syncing; skipped silos remain unchanged.';
+        : 'Groq AI read the photos. A missing line or an EMPTY mark is set to empty. Correct anything that looks wrong before syncing; skipped silos remain unchanged.';
       setSiloReadingStatus(
         result.reader === 'device-ocr'
           ? `Found ${result.readings.length / 2} house labels across ${selectedSiloReadingFiles.length} photos. Rows default to empty; enter a level wherever you see a line.`

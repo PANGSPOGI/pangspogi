@@ -35,7 +35,7 @@ The shared secret secures the Apps Script bridge; it does not log users into
 the Vercel app. If the deployed app is publicly reachable, its API routes can
 be called by visitors, so restrict app access with Vercel Deployment
 Protection or another authentication layer before using it with real data.
-Public access to the Gemini photo-reading endpoint can consume its quota.
+Public access to the Groq photo-reading endpoint can consume account limits.
 
 The spreadsheet keeps the existing `Readings` tab (it is created with headers
 if missing). The app creates a `FeedForecasts` tab on the first forecast save.
@@ -85,23 +85,23 @@ but cannot detect hand-drawn feed lines. Detected silo rows start at 0% (empty);
 enter a level anywhere a line is visible, then review before syncing. Only
 recognized houses are shown.
 
-**Use Gemini (free tier)** sends each photo to Google's Gemini API so it can
+**Read with Groq AI** sends each photo to Groq's vision model so it can
 interpret the silo marks too. A silo with no hand-drawn feed line, or marked
 EMPTY, is set to empty; crossed-out or unclear marks remain unreadable. This
-option requires a Gemini API key from
-[Google AI Studio](https://aistudio.google.com/apikey). Add it as
-`GEMINI_API_KEY` in Vercel **Project Settings → Environment Variables** (or in
-`.env.local` for local development), then redeploy. Keep the key server-side;
-never put it in browser code or chat. Gemini free-tier quotas and availability
-can change or be exhausted; check your account's current limits and billing
-settings, and do not enable Cloud Billing if you must avoid paid usage. If
-avoiding charges is essential, use on-device OCR only. The app does not call
-Gemini unless you select **Use Gemini (free tier)**. Photos sent to Gemini are
-subject to Google's current data-use terms. Printing does not require either
-reader or an API key.
+option requires a Groq API key from the [Groq Console](https://console.groq.com/).
+Add it as `GROQ_API_KEY` in Vercel **Project Settings → Environment Variables**
+(or in `.env.local` for local development), then redeploy. Keep the key
+server-side; never put it in browser code or chat. Groq account access, quotas,
+rate limits, and pricing depend on current account terms. Check the Groq
+Console's billing and limits before use; if it asks you to add a payment
+method and you do not want to, stop and use on-device OCR instead. The app
+does not call Groq unless you select **Read with Groq AI**. Photos sent to
+Groq are subject to its current data-use terms. Printing does not require
+either reader or an API key.
 
 If you previously configured `OPENAI_API_KEY` in Vercel, remove that unused
-variable. Revoke any OpenAI key previously shared in chat; do not reuse it.
+variable. Remove any unused `GEMINI_API_KEY` as well. Revoke any API keys
+previously shared in chat; do not reuse them.
 
 ## Weekly delivery forecast
 
