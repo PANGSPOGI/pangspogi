@@ -236,6 +236,8 @@
     .stat-note { display: block; margin-top: 3px; color: #85938a; font-size: 10px; }
     .filter-feedback { display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin: 0 2px 8px; color: var(--muted); font-size: 11px; }
     .filter-feedback button { padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--green); font: inherit; font-weight: 800; cursor: pointer; }
+    .update-message { min-height: 18px; margin: -4px 2px 10px; color: var(--green-dark); font-size: 11px; font-weight: 700; }
+    .update-message.error { color: #ae3932; }
     .sheet-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
     .house-box { position: relative; overflow: hidden; padding: 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: 0 5px 20px rgba(28,54,40,.04); text-align: left; transition: transform .18s, box-shadow .18s, border-color .18s; }
     .house-box:hover { transform: translateY(-2px); border-color: #cbdccf; box-shadow: var(--shadow); }
@@ -245,6 +247,8 @@
     .house-box[data-status="EMPTY"]::before { background: #d74c4c; }
     .house-title { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; padding: 0 0 10px 3px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 15px; letter-spacing: .2px; }
     .house-status-pill { padding: 4px 8px; border-radius: 20px; font-size: 8px; letter-spacing: .3px; }
+    .house-age { margin: -2px 0 8px 3px; color: var(--muted); font-size: 10px; }
+    .house-age strong { color: var(--green-dark); font-size: 11px; }
     .placement-box { justify-content: flex-start; margin-bottom: 9px; padding: 7px 9px; border: 1px solid #edf1ee; border-radius: 8px; background: #f9fbf9; color: var(--muted); }
     .placement-box input { margin-left: auto; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
     .silo-pair { justify-content: center; gap: 8px; }
@@ -383,6 +387,7 @@
       <span id="filterResultText" aria-live="polite">Showing houses</span>
       <button id="clearDashboardFilters" onclick="clearDashboardFilters()" hidden>Clear filters</button>
     </div>
+    <div class="update-message" id="updateMessage" role="status" aria-live="polite"></div>
 
     <div class="sheet-grid" id="housesContainer"></div>
 
@@ -547,6 +552,11 @@
     let customRemarks = {};
     let lastSavedDateVal = "";
     let lastSavedTimeVal = "";
+    let lastUpdateDateVal = "";
+    let lastUpdateTimeVal = "";
+    let lastUpdateTimestampMs = null;
+    let isUpdateUnsaved = false;
+    let isUpdatingData = false;
     let targetAddSilo = null;
     let feedActionType = 'ADD'; 
     const forecastFeedTypes = ['BSC', 'BSP', 'CBC', 'BFP'];
@@ -569,21 +579,29 @@
     });
 
     function getPSTDateAndTimeString() {
-      const now = new Date();
-      const pstOffsetMs = 8 * 60 * 60 * 1000; 
-      const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const pstDate = new Date(utcMs + pstOffsetMs);
-
-      const year = pstDate.getFullYear();
-      const month = String(pstDate.getMonth() + 1).padStart(2, '0');
-      const day = String(pstDate.getDate()).padStart(2, '0');
-      const hours = String(pstDate.getHours()).padStart(2, '0');
-      const minutes = String(pstDate.getMinutes()).padStart(2, '0');
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Manila',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+      }).formatToParts(new Date()).reduce((values, part) => {
+        if (part.type !== 'literal') values[part.type] = part.value;
+        return values;
+      }, {});
 
       return {
-        dateStr: `${year}-${month}-${day}`,
-        timeStr: `${hours}:${minutes}`
+        dateStr: `${parts.year}-${parts.month}-${parts.day}`,
+        timeStr: `${parts.hour}:${parts.minute}`
       };
+    }
+
+    function getRecordTimestamp(date, time) {
+      if (!date || !time) return null;
+      const timestamp = new Date(`${date}T${time}:00+08:00`).getTime();
+      return Number.isFinite(timestamp) ? timestamp : null;
     }
 
     function loadLocalPlacementBackup() {
@@ -711,7 +729,7 @@
         }
       });
 
-      fetch('/api/save', {
+      return fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -724,47 +742,92 @@
           isDirty = false;
           lastSavedDateVal = dateVal;
           lastSavedTimeVal = timeVal;
+          lastUpdateDateVal = dateVal;
+          lastUpdateTimeVal = timeVal;
+          lastUpdateTimestampMs = getRecordTimestamp(dateVal, timeVal);
+          isUpdateUnsaved = false;
           updateSyncBadge("SAVED", "");
           if (shouldCloseWindow) {
             window.close();
           } else if (isManual) {
             showSuccessModal();
           }
+          return true;
         })
         .catch(function(err) {
           updateSyncBadge("SAVE ERROR", "unsaved");
           alert("Error saving: " + (err && err.message ? err.message : "Unknown network issue"));
+          return false;
         });
     }
 
-    function manualUpdateData() {
+    async function manualUpdateData() {
+      if (isUpdatingData) return;
+      const updateButton = document.getElementById('btnUpdate');
+      const message = document.getElementById('updateMessage');
+      const setMessage = function(text, isError) {
+        message.innerText = text;
+        message.classList.toggle('error', !!isError);
+      };
+      if (isUpdateUnsaved) {
+        setMessage('The previous estimate is not saved yet. Click Save Now before updating again.', true);
+        return;
+      }
       const pst = getPSTDateAndTimeString();
-      const currentDateObj = new Date(`${pst.dateStr}T${pst.timeStr}:00`);
+      const baselineTimestamp = lastUpdateTimestampMs || getRecordTimestamp(
+        lastUpdateDateVal || lastSavedDateVal,
+        lastUpdateTimeVal || lastSavedTimeVal
+      );
 
-      let baseDate = lastSavedDateVal || document.getElementById('recordDate').value;
-      let baseTime = lastSavedTimeVal || document.getElementById('recordTime').value;
-
-      if (baseDate && baseTime) {
-        const lastSaveObj = new Date(`${baseDate}T${baseTime}:00`);
-        const diffMs = currentDateObj - lastSaveObj;
-        const diffHours = diffMs / (1000 * 60 * 60);
-
-        if (diffHours > 0) {
-          allHouseNumbers.forEach(num => {
-            const houseKey = `FH${num}`;
-            const ratePerHour = (num <= 12) ? 270 : 312;
-            const totalDeduction = diffHours * ratePerHour;
-            applyDeductionToHouse(houseKey, totalDeduction);
-          });
-        }
+      if (!baselineTimestamp) {
+        recalculateAllAges();
+        setMessage('No saved reading is available to calculate feed use yet. Set the silo levels, then click Save Now first.', true);
+        return;
       }
 
-      document.getElementById('recordDate').value = pst.dateStr;
-      document.getElementById('recordTime').value = pst.timeStr;
+      const diffHours = (Date.now() - baselineTimestamp) / (1000 * 60 * 60);
+      if (diffHours <= 0) {
+        recalculateAllAges();
+        setMessage('The saved readings are already up to date.', false);
+        return;
+      }
+      if (diffHours < 1 / 60) {
+        recalculateAllAges();
+        setMessage('The readings were updated less than a minute ago; no new feed-use estimate is needed yet.', false);
+        return;
+      }
 
-      recalculateAllAges();
-      renderHouses();
-      markAsUnsaved();
+      isUpdatingData = true;
+      updateButton.disabled = true;
+      updateButton.innerText = 'Updating...';
+      setMessage('Calculating estimated feed use...', false);
+
+      try {
+        allHouseNumbers.forEach(num => {
+          const houseKey = `FH${num}`;
+          const ratePerHour = (num <= 12) ? 270 : 312;
+          applyDeductionToHouse(houseKey, diffHours * ratePerHour);
+        });
+
+        document.getElementById('recordDate').value = pst.dateStr;
+        document.getElementById('recordTime').value = pst.timeStr;
+
+        recalculateAllAges();
+        renderHouses();
+        markAsUnsaved();
+        const saved = await executeSave(false, false);
+        if (saved) {
+          lastUpdateTimestampMs = Date.now();
+          setMessage(`Updated and saved estimated feed use for ${diffHours.toFixed(1)} hours.`, false);
+        } else {
+          isUpdateUnsaved = true;
+          setMessage('The estimate was updated on screen but could not be saved. Check the connection, then click Save Now.', true);
+        }
+      } finally {
+        isUpdatingData = false;
+        updateButton.disabled = false;
+        updateButton.innerText = '🔄 Update Data';
+      }
     }
 
     function applyDeductionToHouse(houseKey, totalDeductionKg) {
@@ -822,7 +885,10 @@
 
       const compensatedBaseY = targetAvgY + (sumCurveOffset / tempPoints.length);
       silo.points = tempPoints.map(p => ({ x: p.x, y: Math.max(12, Math.min(192, compensatedBaseY - p.offset)) }));
-      
+
+      silo.currentKg = newKg;
+      silo.currentPct = Math.round(targetPct * 100);
+      silo.status = silo.currentPct <= 35 ? 'CRITICAL' : silo.currentPct <= 75 ? 'MODERATE' : 'SAFE';
       delete customRemarks[houseKey];
     }
 
@@ -841,8 +907,15 @@
               saveLocalPlacementBackup();
             }
             if (state.customRemarks) customRemarks = state.customRemarks;
-            if (state.lastSavedDate) lastSavedDateVal = state.lastSavedDate;
-            if (state.lastSavedTime) lastSavedTimeVal = state.lastSavedTime;
+            if (state.lastSavedDate) {
+              lastSavedDateVal = state.lastSavedDate;
+              lastUpdateDateVal = state.lastSavedDate;
+            }
+            if (state.lastSavedTime) {
+              lastSavedTimeVal = state.lastSavedTime;
+              lastUpdateTimeVal = state.lastSavedTime;
+            }
+            lastUpdateTimestampMs = getRecordTimestamp(lastUpdateDateVal, lastUpdateTimeVal);
 
             if (state.farmData && Object.keys(state.farmData).length > 0) {
               Object.keys(state.farmData).forEach(function(houseKey) {
@@ -892,36 +965,41 @@
         });
     }
 
-    // FORMULA: Age = (Date Today - Placement Date) - 1
+    // Flock age counts completed days after placement day.
     function computeFlockAge(houseKey) {
-      const todayStr = document.getElementById('recordDate').value;
       const placementStr = placementDates[houseKey];
-      if (!todayStr || !placementStr) return 0;
+      const todayStr = getPSTDateAndTimeString().dateStr;
+      const isDateOnly = value => /^\d{4}-\d{2}-\d{2}$/.test(value);
+      if (!placementStr || !isDateOnly(placementStr) || !isDateOnly(todayStr)) return '';
 
-      const d1 = new Date(todayStr + "T00:00:00");
-      const d2 = new Date(placementStr + "T00:00:00");
-      
-      const diffTime = d1.getTime() - d2.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) - 1;
-      
-      return diffDays;
+      const today = new Date(`${todayStr}T00:00:00.000Z`);
+      const placement = new Date(`${placementStr}T00:00:00.000Z`);
+      if (
+        !Number.isFinite(today.getTime()) ||
+        !Number.isFinite(placement.getTime()) ||
+        placement.toISOString().slice(0, 10) !== placementStr
+      ) return '';
+
+      const daysSincePlacement = Math.floor((today.getTime() - placement.getTime()) / 86400000);
+      return Math.max(0, daysSincePlacement - 1);
     }
 
     function updatePlacementDate(houseKey, val) {
       placementDates[houseKey] = val;
       saveLocalPlacementBackup();
-
-      const ageEl = document.getElementById(`age_${houseKey}`);
-      if (ageEl) ageEl.innerText = computeFlockAge(houseKey);
-
+      recalculateAllAges();
       markAsUnsaved();
     }
 
     function recalculateAllAges() {
       allHouseNumbers.forEach(function(num) {
         const houseKey = `FH${num}`;
-        const ageEl = document.getElementById(`age_${houseKey}`);
-        if (ageEl) ageEl.innerText = computeFlockAge(houseKey);
+        const age = computeFlockAge(houseKey);
+        const ageText = age === '' ? 'Not set' : `${age} days`;
+        const cardAgeEl = document.getElementById(`flockAge_${houseKey}`);
+        const summaryAgeEl = document.getElementById(`age_${houseKey}`);
+        if (cardAgeEl) cardAgeEl.innerText = ageText;
+        if (summaryAgeEl) summaryAgeEl.innerText = age;
       });
     }
 
@@ -1150,6 +1228,7 @@
         if (!silos) return;
 
         const pDateVal = placementDates[houseKey] || '';
+        const flockAge = computeFlockAge(houseKey);
 
         const houseBox = document.createElement('div');
         houseBox.className = 'house-box';
@@ -1162,6 +1241,7 @@
             <label>Placement:</label>
             <input type="date" value="${pDateVal}" onchange="updatePlacementDate('${houseKey}', this.value)">
           </div>
+          <div class="house-age">Flock age: <strong id="flockAge_${houseKey}">${flockAge === '' ? 'Not set' : `${flockAge} days`}</strong></div>
           <div class="silo-pair" id="pair_${houseKey}"></div>
         `;
         container.appendChild(houseBox);
@@ -1775,7 +1855,7 @@
         tr.innerHTML = `
           <td>${houseKey}</td>
           <td>
-            <span id="age_${houseKey}" style="font-weight:900;">${computedAge}</span>
+            <span id="age_${houseKey}" style="font-weight:900;">${computedAge === '' ? '—' : computedAge}</span>
           </td>
           <td class="silo-val" style="${s1Kg === 0 ? 'color: #dc2626;' : ''}">${s1Kg > 0 ? `${s1Kg.toFixed(2)} (${s1.currentPct}%)` : 'EMPTY (0%)'}</td>
           <td class="silo-val" style="${s2Kg === 0 ? 'color: #dc2626;' : ''}">${s2Kg > 0 ? `${s2Kg.toFixed(2)} (${s2.currentPct}%)` : 'EMPTY (0%)'}</td>

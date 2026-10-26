@@ -47,7 +47,10 @@ subject to Google Apps Script service quotas.
 
 The dashboard includes searchable house cards, house-group controls, clickable
 critical/empty status filters, and live silo-level summary counts. The filters
-also limit which houses are affected by **Reset Visible Silos**.
+also limit which houses are affected by **Reset Visible Silos**. Each house
+shows flock age from its placement date using the current Philippines date.
+**Update Data** estimates feed use since the last saved reading (270 kg/hour
+for FH1-FH12 and 312 kg/hour for FH13-FH19) and saves the updated readings.
 
 ## Silo profiles
 
