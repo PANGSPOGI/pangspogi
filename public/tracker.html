@@ -362,7 +362,7 @@
     body[data-theme="dark"] .house-box { background: var(--surface); }
     body[data-theme="dark"] .placement-box,
     body[data-theme="dark"] .silo-unit { border-color: var(--line); }
-    body[data-theme="dark"] .canvas-container { background: #f7faf8; }
+    body[data-theme="dark"] .canvas-container { background: #202923; }
     body[data-theme="dark"] .silo-label-box { background: #2d4235; color: #d5ecdd; }
     body[data-theme="dark"] .btn-add { background: #263d30; color: #a4d2b5; border-color: #3c6149; }
     body[data-theme="dark"] .btn-sub { background: #403729; color: #edc58e; border-color: #66583b; }
@@ -730,6 +730,12 @@
     function applyTheme(theme) {
       const isDark = theme === 'dark';
       document.body.dataset.theme = isDark ? 'dark' : 'light';
+      allHouseNumbers.forEach(function(num) {
+        const houseKey = `FH${num}`;
+        (farmData[houseKey] || []).forEach(function(_silo, idx) {
+          drawSiloCanvas(houseKey, idx, `canvas_${houseKey}_${idx}`);
+        });
+      });
       const button = document.getElementById('themeToggle');
       button.innerText = isDark ? 'Light mode' : 'Dark mode';
       button.setAttribute('aria-pressed', String(isDark));
@@ -1433,7 +1439,8 @@
       const halfWidth = 60 * profile.diameter / 3;
       const leftX = cx - halfWidth, rightX = cx + halfWidth;
 
-      ctx.strokeStyle = '#000000'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      const isDarkTheme = document.body.dataset.theme === 'dark';
+      ctx.strokeStyle = isDarkTheme ? '#718078' : '#000000'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
       for (let section = 0; section <= profile.cylinderSections; section++) {
         const seamY = bodyTopY + section * profile.cylinderSectionHeight * profileScale;
         ctx.beginPath();
@@ -1465,7 +1472,7 @@
         ctx.restore();
       }
 
-      ctx.strokeStyle = '#000000'; ctx.lineWidth = 2;
+      ctx.strokeStyle = isDarkTheme ? '#d4ded7' : '#000000'; ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(cx, topY); ctx.lineTo(rightX, bodyTopY); ctx.lineTo(rightX, bodyBotY);
       ctx.lineTo(cx, botY); ctx.lineTo(leftX, bodyBotY); ctx.lineTo(leftX, bodyTopY);
