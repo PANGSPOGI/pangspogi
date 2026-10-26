@@ -76,16 +76,19 @@ from its tracker profile. House order matches the supplied sheets: FH06/FH08
 through FH11/FH12, then FH01/FH02 through FH05/FH13, followed by FH14/FH15
 through FH18/FH19. The A4 print pages are separated explicitly to prevent the
 three-page form from being scaled together. **Upload Silo Photo** opens a
-drop-or-browse screen with an image preview.
+drop-or-browse screen that accepts up to three photos (one for each printed
+report page) for a single combined review.
 
 **Read on this device (free OCR)** runs text recognition in your browser and
-does not upload the image. It can detect house labels and some date/time text,
-but it cannot reliably read hand-drawn silo levels; enter those values
-yourself, then review before syncing. Only recognized houses are shown, and
-blank silo fields are skipped.
+does not upload the images. It detects house labels and some date/time text,
+but cannot detect hand-drawn feed lines. Detected silo rows start at 0% (empty);
+enter a level anywhere a line is visible, then review before syncing. Only
+recognized houses are shown.
 
-**Use Gemini (free tier)** sends the photo to Google's Gemini API so it can try
-to interpret the silo marks too. This option requires a Gemini API key from
+**Use Gemini (free tier)** sends each photo to Google's Gemini API so it can
+interpret the silo marks too. A silo with no hand-drawn feed line, or marked
+EMPTY, is set to empty; crossed-out or unclear marks remain unreadable. This
+option requires a Gemini API key from
 [Google AI Studio](https://aistudio.google.com/apikey). Add it as
 `GEMINI_API_KEY` in Vercel **Project Settings → Environment Variables** (or in
 `.env.local` for local development), then redeploy. Keep the key server-side;

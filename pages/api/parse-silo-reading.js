@@ -144,10 +144,11 @@ export default async function handler(req, res) {
       'Read the handwritten report date and time. Return date as YYYY-MM-DD and time as 24-hour HH:mm. Use an empty string if either cannot be read.',
       'For every visible silo, determine its mark:',
       '- level: a hand-drawn horizontal or curved feed surface; estimate its vertical position as fillLevelPercent, where 0 is the very bottom of the silo and 100 is the very top.',
-      '- empty: the word EMPTY or a clearly empty silo; use fillLevelPercent 0.',
+      '- empty: the word EMPTY, or no visible hand-drawn horizontal/curved feed line inside an otherwise readable silo; use fillLevelPercent 0.',
       '- full: the word FULL or a clearly full silo; use fillLevelPercent 100.',
-      '- unreadable: a cross-out, missing mark, or unclear reading; use fillLevelPercent 0.',
+      '- unreadable: a cross-out, obscured silo, or unclear photo; use fillLevelPercent 0.',
       'Ignore feed-type notes and small open/closed marks above the silo. A crossed-out silo is unreadable, not empty.',
+      'A blank silo with no feed line is empty. Do not treat the printed silo outline or section seams as feed lines.',
       'Do not invent unreadable house numbers or silos. Confidence is a number from 0 to 1 for the reading mark and level.',
     ].join('\n');
 

@@ -756,16 +756,16 @@
   <div class="modal-overlay" id="siloReadingModal" onclick="if(event.target===this && !isReadingSiloPhoto) closeSiloReadingModal()">
     <div class="modal-box silo-reading-dialog">
       <h3 id="siloReadingTitle">Upload silo reading</h3>
-      <p id="siloReadingDescription">Choose a photo. On-device OCR is free and keeps the photo in your browser, but you must enter the silo levels yourself. Gemini can interpret the marks using its free-tier quota.</p>
-      <input id="siloReadingFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden onchange="selectSiloReadingImage(this.files && this.files[0])">
+      <p id="siloReadingDescription">Select up to three report photos. On-device OCR keeps them in your browser and defaults silo levels to empty; change any silo that has a hand-drawn line. Gemini can interpret the marks using its free-tier quota.</p>
+      <input id="siloReadingFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden onchange="selectSiloReadingImages(this.files)">
       <div class="silo-upload-landing" id="siloUploadLanding">
         <div class="silo-upload-dropzone" id="siloUploadDropzone" role="button" tabindex="0" aria-label="Choose or drop a silo reading photo">
           <span class="silo-upload-icon" aria-hidden="true">↑</span>
           <span class="silo-upload-title">Drop your silo photo here</span>
-          <span class="silo-upload-hint">or click to browse your device<br>JPEG, PNG, or WebP · up to 20 MB</span>
+          <span class="silo-upload-hint">or click to browse your device<br>Up to 3 JPEG, PNG, or WebP photos · 20 MB each</span>
         </div>
         <div class="silo-upload-file" id="siloUploadFilePreview" hidden>
-          <img class="silo-upload-thumbnail" id="siloUploadThumbnail" alt="Selected silo report preview">
+          <img class="silo-upload-thumbnail" id="siloUploadThumbnail" alt="First selected silo report preview">
           <div class="silo-upload-file-details" id="siloUploadFileDetails"></div>
           <button class="btn-lg btn-clear" type="button" onclick="clearSiloReadingImage()">Remove</button>
         </div>
@@ -785,7 +785,7 @@
             <input type="time" id="siloReadingTime">
           </label>
         </div>
-        <p>Fill level is the vertical position from the bottom of the silo. Low-confidence values and unreadable entries should be checked carefully. Leave a field blank to skip that silo.</p>
+        <p>Fill level is the vertical position from the bottom of the silo. OCR starts silos at 0% empty, so enter a level wherever a line is visible. Review all values before syncing.</p>
         <div class="silo-reading-list" id="siloReadingList"></div>
         <div class="silo-reading-actions">
           <button class="btn-lg btn-clear" type="button" onclick="closeSiloReadingModal()">Cancel</button>
@@ -811,8 +811,8 @@
     let isUpdatingData = false;
     let targetAddSilo = null;
     let feedActionType = 'ADD'; 
-    let selectedSiloReadingFile = null;
-    let siloReadingPreviewUrl = '';
+    let selectedSiloReadingFiles = [];
+    let siloReadingPreviewUrls = [];
     let isReadingSiloPhoto = false;
     let tesseractLoadPromise = null;
     const forecastFeedTypes = ['BSC', 'BSP', 'CBC', 'BFP'];
@@ -1077,7 +1077,7 @@
       document.getElementById('siloReadingStatus').hidden = true;
       document.getElementById('siloReadingTitle').innerText = 'Upload silo reading';
       document.getElementById('siloReadingDescription').innerText =
-        'Choose a photo. On-device OCR is free and keeps the photo in your browser, but you must enter the silo levels yourself. Gemini can interpret the marks using its free-tier quota.';
+        'Select up to three report photos. On-device OCR keeps them in your browser and defaults silo levels to empty; change any silo that has a hand-drawn line. Gemini can interpret the marks using its free-tier quota.';
       document.getElementById('siloReadingModal').style.display = 'flex';
     }
 
@@ -1109,33 +1109,45 @@
       dropzone.addEventListener('drop', function(event) {
         event.preventDefault();
         dropzone.classList.remove('drag-over');
-        selectSiloReadingImage(event.dataTransfer.files && event.dataTransfer.files[0]);
+        selectSiloReadingImages(event.dataTransfer.files);
       });
     }
 
-    function selectSiloReadingImage(file) {
+    function selectSiloReadingImages(fileList) {
       const input = document.getElementById('siloReadingFile');
-      if (!file) {
+      const files = Array.from(fileList || []);
+      if (!files.length) {
         input.value = '';
         return;
       }
-      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
-        setSiloReadingStatus('Choose a JPEG, PNG, or WebP photo.', true);
+      if (selectedSiloReadingFiles.length + files.length > 3) {
+        setSiloReadingStatus('Choose up to three photos total, one for each printed report page.', true);
         input.value = '';
         return;
       }
-      if (file.size > 20 * 1024 * 1024) {
-        setSiloReadingStatus('The selected photo is too large. Choose an image under 20 MB.', true);
+      const invalidFile = files.find(function(file) {
+        return !/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 20 * 1024 * 1024;
+      });
+      if (invalidFile) {
+        const message = !/^image\/(jpeg|png|webp)$/.test(invalidFile.type)
+          ? 'Choose JPEG, PNG, or WebP photos only.'
+          : `${invalidFile.name} is too large. Choose photos under 20 MB each.`;
+        setSiloReadingStatus(message, true);
         input.value = '';
         return;
       }
-
-      clearSiloReadingImage();
-      selectedSiloReadingFile = file;
-      siloReadingPreviewUrl = URL.createObjectURL(file);
-      document.getElementById('siloUploadThumbnail').src = siloReadingPreviewUrl;
+      selectedSiloReadingFiles = selectedSiloReadingFiles.concat(files);
+      siloReadingPreviewUrls.forEach(function(url) { URL.revokeObjectURL(url); });
+      siloReadingPreviewUrls = selectedSiloReadingFiles.map(function(file) {
+        return URL.createObjectURL(file);
+      });
+      const preview = document.getElementById('siloUploadThumbnail');
+      preview.src = siloReadingPreviewUrls[0];
       document.getElementById('siloUploadFileDetails').innerText =
-        `${file.name}\n${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        `${selectedSiloReadingFiles.length} photo${selectedSiloReadingFiles.length === 1 ? '' : 's'} selected\n` +
+        selectedSiloReadingFiles.map(function(file) {
+          return `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+        }).join('\n');
       document.getElementById('siloUploadFilePreview').hidden = false;
       document.getElementById('siloReadingOcrButton').disabled = false;
       document.getElementById('siloReadingGeminiButton').disabled = false;
@@ -1144,9 +1156,9 @@
     }
 
     function clearSiloReadingImage() {
-      if (siloReadingPreviewUrl) URL.revokeObjectURL(siloReadingPreviewUrl);
-      siloReadingPreviewUrl = '';
-      selectedSiloReadingFile = null;
+      siloReadingPreviewUrls.forEach(function(url) { URL.revokeObjectURL(url); });
+      siloReadingPreviewUrls = [];
+      selectedSiloReadingFiles = [];
       const preview = document.getElementById('siloUploadThumbnail');
       if (preview) preview.removeAttribute('src');
       const previewBox = document.getElementById('siloUploadFilePreview');
@@ -1242,8 +1254,8 @@
       return twentyFourHourMatch ? `${twentyFourHourMatch[1]}:${twentyFourHourMatch[2]}` : '';
     }
 
-    async function readSiloReadingWithOcr(file) {
-      setSiloReadingStatus('Loading the free OCR tool in your browser...', false);
+    async function readSiloReadingWithOcr(file, photoIndex, photoCount) {
+      setSiloReadingStatus(`Reading photo ${photoIndex} of ${photoCount} with free on-device OCR...`, false);
       const tesseract = await loadTesseract();
       setSiloReadingStatus('Reading text on this device. Your photo is not being uploaded...', false);
       const result = await tesseract.recognize(file, 'eng');
@@ -1262,9 +1274,9 @@
             return {
               house: `FH${houseNumber}`,
               silo: silo,
-              mark: 'unreadable',
-              fillLevelPercent: null,
-              confidence: 0,
+              mark: 'empty',
+              fillLevelPercent: 0,
+              confidence: 0.5,
             };
           });
         });
@@ -1280,8 +1292,8 @@
     }
 
     async function processSelectedSiloReading(mode) {
-      if (!selectedSiloReadingFile || isReadingSiloPhoto) return;
-      const file = selectedSiloReadingFile;
+      if (!selectedSiloReadingFiles.length || isReadingSiloPhoto) return;
+      const files = selectedSiloReadingFiles.slice();
       isReadingSiloPhoto = true;
       document.getElementById('siloUploadLanding').hidden = true;
       document.getElementById('siloReadingReview').hidden = true;
@@ -1290,34 +1302,63 @@
       document.getElementById('siloReadingGeminiButton').disabled = true;
 
       try {
-        let result;
-        if (mode === 'ocr') {
-          result = await readSiloReadingWithOcr(file);
-        } else if (mode === 'gemini') {
-          const imageDataUrl = await compressSiloReadingImage(file);
-          setSiloReadingStatus('Sending the photo to Gemini. Free-tier limits apply...', false);
-          const response = await fetch('/api/parse-silo-reading', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageDataUrl: imageDataUrl }),
-          });
-          const responseBody = await response.json();
-          if (!response.ok || (responseBody && responseBody.error)) {
-            throw new Error(responseBody && responseBody.error ? responseBody.error : 'Unable to read the silo report.');
+        const results = [];
+        for (let index = 0; index < files.length; index++) {
+          if (mode === 'ocr') {
+            results.push(await readSiloReadingWithOcr(files[index], index + 1, files.length));
+          } else if (mode === 'gemini') {
+            const imageDataUrl = await compressSiloReadingImage(files[index]);
+            setSiloReadingStatus(`Sending photo ${index + 1} of ${files.length} to Gemini. Free-tier limits apply...`, false);
+            const response = await fetch('/api/parse-silo-reading', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageDataUrl: imageDataUrl }),
+            });
+            let responseBody;
+            try {
+              responseBody = await response.json();
+            } catch (error) {
+              throw new Error('Gemini returned an unreadable response. Please try again or use on-device OCR.');
+            }
+            if (!response.ok || (responseBody && responseBody.error)) {
+              throw new Error(responseBody && responseBody.error ? responseBody.error : 'Unable to read the silo report.');
+            }
+            results.push(responseBody);
+          } else {
+            throw new Error('Choose on-device OCR or Gemini to read the photos.');
           }
-          result = Object.assign({ reader: 'gemini' }, responseBody);
-        } else {
-          throw new Error('Choose on-device OCR or Gemini to read the photo.');
         }
+        const result = mergeSiloReadingResults(results, mode === 'ocr' ? 'device-ocr' : 'gemini');
         showSiloReadingReview(result);
       } catch (error) {
         document.getElementById('siloUploadLanding').hidden = false;
         setSiloReadingStatus(error.message || 'Unable to read the silo report image.', true);
       } finally {
         isReadingSiloPhoto = false;
-        document.getElementById('siloReadingOcrButton').disabled = !selectedSiloReadingFile;
-        document.getElementById('siloReadingGeminiButton').disabled = !selectedSiloReadingFile;
+        document.getElementById('siloReadingOcrButton').disabled = !selectedSiloReadingFiles.length;
+        document.getElementById('siloReadingGeminiButton').disabled = !selectedSiloReadingFiles.length;
       }
+    }
+
+    function mergeSiloReadingResults(results, reader) {
+      const readingsBySilo = new Map();
+      let date = '';
+      let time = '';
+      results.forEach(function(result) {
+        if (!date && result.date) date = result.date;
+        if (!time && result.time) time = result.time;
+        result.readings.forEach(function(reading) {
+          const key = `${reading.house}-${reading.silo}`;
+          if (readingsBySilo.has(key)) {
+            throw new Error(`More than one photo contains ${reading.house} ${reading.silo}. Remove duplicate/overlapping photos and try again.`);
+          }
+          readingsBySilo.set(key, reading);
+        });
+      });
+      if (!readingsBySilo.size) {
+        throw new Error('No house labels were detected in the selected photos. Try clearer, straight-on photos.');
+      }
+      return { date: date, time: time, readings: Array.from(readingsBySilo.values()), reader: reader };
     }
 
     function showSiloReadingReview(result) {
@@ -1327,7 +1368,7 @@
           ? ''
           : String(Math.round(reading.fillLevelPercent * 10) / 10);
         const markText = result.reader === 'device-ocr'
-          ? 'Needs manual level entry'
+          ? 'Defaulted to empty · change if a line is visible'
           : reading.mark === 'unreadable'
           ? 'Unreadable'
           : reading.mark === 'empty'
@@ -1336,7 +1377,7 @@
               ? 'Marked full'
               : 'Level mark';
         const confidenceText = result.reader === 'device-ocr'
-          ? 'On-device text recognition only'
+          ? 'Check against photo'
           : `${Math.round(reading.confidence * 100)}% confidence`;
         return `<label class="silo-reading-row">
           <span class="silo-reading-label">${reading.house} · ${reading.silo}
@@ -1354,11 +1395,11 @@
       document.getElementById('siloReadingReview').hidden = false;
       document.getElementById('siloReadingTitle').innerText = 'Review silo photo reading';
       document.getElementById('siloReadingDescription').innerText = result.reader === 'device-ocr'
-        ? 'On-device OCR found house labels and any clear date/time text. It cannot read drawn silo levels; enter those yourself. The photo stayed in your browser.'
-        : 'Gemini read the photo. Correct anything that looks wrong before syncing; skipped silos remain unchanged.';
+        ? 'On-device OCR found the house labels and date/time. The photo stayed in your browser. OCR cannot see feed lines, so rows start at empty (0%); enter the fill level anywhere you see a line.'
+        : 'Gemini read the photos. A missing line or an EMPTY mark is set to empty. Correct anything that looks wrong before syncing; skipped silos remain unchanged.';
       setSiloReadingStatus(
         result.reader === 'device-ocr'
-          ? `Found ${result.readings.length / 2} house labels. Enter the silo levels you can read; leave the others blank to skip.`
+          ? `Found ${result.readings.length / 2} house labels across ${selectedSiloReadingFiles.length} photos. Rows default to empty; enter a level wherever you see a line.`
           : result.readings.length
           ? `Found ${result.readings.length} silo marks. Check the values before syncing.`
           : 'No silo marks were detected. Try a clearer photo with the house labels visible.',
