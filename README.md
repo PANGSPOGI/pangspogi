@@ -35,8 +35,7 @@ The shared secret secures the Apps Script bridge; it does not log users into
 the Vercel app. If the deployed app is publicly reachable, its API routes can
 be called by visitors, so restrict app access with Vercel Deployment
 Protection or another authentication layer before using it with real data.
-This is especially important after adding photo reading, because public access
-to that endpoint can consume OpenAI API quota or incur charges.
+Public access to the Gemini photo-reading endpoint can consume its quota.
 
 The spreadsheet keeps the existing `Readings` tab (it is created with headers
 if missing). The app creates a `FeedForecasts` tab on the first forecast save.
@@ -77,21 +76,29 @@ from its tracker profile. House order matches the supplied sheets: FH06/FH08
 through FH11/FH12, then FH01/FH02 through FH05/FH13, followed by FH14/FH15
 through FH18/FH19. The A4 print pages are separated explicitly to prevent the
 three-page form from being scaled together. **Upload Silo Photo** opens a
-drop-or-browse screen with an image preview. After choosing **Read Silo Photo**,
-review and edit the detected date, time, and silo fill marks before syncing;
-crossed-out or unreadable silos are left unchanged. Recognized fill heights
-are converted to inventory using the matching silo profile.
+drop-or-browse screen with an image preview.
 
-Photo reading uses OpenAI GPT-4o mini. Add `OPENAI_API_KEY` to the server
-environment (for example, Vercel Environment Variables or `.env.local`). In
-Vercel, set the variable name to `OPENAI_API_KEY` and paste your OpenAI API key
-itself as its value (not the key name). Redeploy after saving the variable.
-Keep the key server-side; never put it in browser code or chat.
-Uploaded photos are sent to OpenAI for recognition, so do not upload photos
-you are not authorized to share. OpenAI API availability, quotas, pricing, and
-data-use terms depend on OpenAI's current policy and your account; check
-OpenAI's API pricing and terms before use. Photo recognition
-requires this key, while printing does not.
+**Read on this device (free OCR)** runs text recognition in your browser and
+does not upload the image. It can detect house labels and some date/time text,
+but it cannot reliably read hand-drawn silo levels; enter those values
+yourself, then review before syncing. Only recognized houses are shown, and
+blank silo fields are skipped.
+
+**Use Gemini (free tier)** sends the photo to Google's Gemini API so it can try
+to interpret the silo marks too. This option requires a Gemini API key from
+[Google AI Studio](https://aistudio.google.com/apikey). Add it as
+`GEMINI_API_KEY` in Vercel **Project Settings → Environment Variables** (or in
+`.env.local` for local development), then redeploy. Keep the key server-side;
+never put it in browser code or chat. Gemini free-tier quotas and availability
+can change or be exhausted; check your account's current limits and billing
+settings, and do not enable Cloud Billing if you must avoid paid usage. If
+avoiding charges is essential, use on-device OCR only. The app does not call
+Gemini unless you select **Use Gemini (free tier)**. Photos sent to Gemini are
+subject to Google's current data-use terms. Printing does not require either
+reader or an API key.
+
+If you previously configured `OPENAI_API_KEY` in Vercel, remove that unused
+variable. Revoke any OpenAI key previously shared in chat; do not reuse it.
 
 ## Weekly delivery forecast
 
