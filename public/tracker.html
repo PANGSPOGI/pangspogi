@@ -1480,10 +1480,14 @@
       const silo = farmData[houseKey][idx];
 
       function startDraw(e) {
+        e.preventDefault();
         silo.isEmpty = false;
         silo.isDragging = true;
         silo.points = [];
         delete customRemarks[houseKey];
+        if (e.isTrusted && canvas.setPointerCapture) {
+          canvas.setPointerCapture(e.pointerId);
+        }
         addPoint(e);
       }
 
@@ -1504,20 +1508,20 @@
 
       function addPoint(e) {
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const x = Math.max(10, Math.min(140, clientX - rect.left));
-        const y = Math.max(12, Math.min(192, clientY - rect.top));
-        silo.points.push({ x: x, y: y });
+        if (!rect.width || !rect.height) return;
+        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        const boundedX = Math.max(10, Math.min(140, x));
+        const boundedY = Math.max(12, Math.min(192, y));
+        silo.points.push({ x: boundedX, y: boundedY });
         drawSiloCanvas(houseKey, idx, canvasId);
       }
 
-      canvas.onmousedown = startDraw;
-      canvas.onmousemove = moveDraw;
-      window.addEventListener('mouseup', endDraw);
-      canvas.ontouchstart = startDraw;
-      canvas.ontouchmove = moveDraw;
-      canvas.ontouchend = endDraw;
+      canvas.onpointerdown = startDraw;
+      canvas.onpointermove = moveDraw;
+      canvas.onpointerup = endDraw;
+      canvas.onpointercancel = endDraw;
+      canvas.onlostpointercapture = endDraw;
     }
 
     function smoothPoints(silo) {
