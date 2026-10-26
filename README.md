@@ -73,11 +73,14 @@ silos and map fill height to stored feed volume:
 
 Use **Print Silo Reading** to preview the paper form before printing. It creates
 three pages in the same six-house layout as the sample, with each silo drawn
-from its tracker profile. **Upload Silo Photo** opens a drop-or-browse screen
-with an image preview. After choosing **Read Silo Photo**, review and edit the
-detected date, time, and silo fill marks before syncing; crossed-out or
-unreadable silos are left unchanged. Recognized fill heights are converted to
-inventory using the matching silo profile.
+from its tracker profile. House order matches the supplied sheets: FH06/FH08
+through FH11/FH12, then FH01/FH02 through FH05/FH13, followed by FH14/FH15
+through FH18/FH19. The A4 print pages are separated explicitly to prevent the
+three-page form from being scaled together. **Upload Silo Photo** opens a
+drop-or-browse screen with an image preview. After choosing **Read Silo Photo**,
+review and edit the detected date, time, and silo fill marks before syncing;
+crossed-out or unreadable silos are left unchanged. Recognized fill heights
+are converted to inventory using the matching silo profile.
 
 Photo reading uses OpenAI's vision API. Add `OPENAI_API_KEY` to the server
 environment (for example, Vercel Environment Variables or `.env.local`). Keep
