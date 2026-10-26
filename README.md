@@ -53,6 +53,8 @@ shows flock age from its placement date using the current Philippines date.
 for FH1-FH12 and 312 kg/hour for FH13-FH19) and saves the updated readings.
 The dashboard is responsive for desktop and mobile, and its header includes a
 dark-mode toggle that remembers the setting in the current browser.
+The main action bar stays fixed at the bottom while scrolling, with extra page
+spacing so it does not cover the last house cards.
 
 ## Silo profiles
 
