@@ -232,36 +232,6 @@
       .silo-upload-dropzone { min-height: 185px; padding: 20px 12px; }
       .silo-reading-dialog { width: 100%; max-height: 100vh; max-height: 100dvh; padding: 16px; }
     }
-    @page { size: A4 portrait; margin: 0; }
-    @media print {
-      body.silo-reading-printing > :not(#siloPrintPages) { display: none !important; }
-      body.silo-reading-printing #siloPrintPages { display: block !important; }
-      body.silo-reading-printing .silo-print-page {
-        display: flex !important;
-        flex-direction: column;
-        width: 210mm;
-        height: 297mm;
-        padding: 12mm 13mm 11mm;
-        box-sizing: border-box;
-        overflow: hidden;
-        background: #fff !important;
-        break-after: auto;
-        page-break-after: auto;
-      }
-      body.silo-reading-printing .silo-print-page + .silo-print-page {
-        break-before: page;
-        page-break-before: always;
-      }
-      body.silo-reading-printing .silo-print-heading { min-height: 74px; margin-bottom: 10px; padding-top: 1px; }
-      body.silo-reading-printing .silo-print-heading strong { font-size: 17px; }
-      body.silo-reading-printing .silo-print-heading span { font-size: 14px; }
-      body.silo-reading-printing .silo-print-meta { top: 41px; font-size: 11px; }
-      body.silo-reading-printing .silo-print-grid { gap: 4px 10px; }
-      body.silo-reading-printing .silo-print-house { padding: 3px 5px; }
-      body.silo-reading-printing .silo-print-house h2 { font-size: 14px; }
-      body.silo-reading-printing .silo-print-svg { width: min(100%, 110px); }
-    }
-
     .modal-header-inputs { display: flex; justify-content: center; gap: 30px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border: 2px solid #000; border-radius: 6px; }
     .modal-header-inputs div { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 15px; }
     .modal-header-inputs input { border: 1.5px solid #000; padding: 5px 10px; border-radius: 4px; font-weight: 800; outline: none; font-size: 14px; background: #fff; text-align: center; }
@@ -1030,13 +1000,65 @@
     }
 
     function confirmPrintSiloReading() {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Allow pop-ups for this site to print the silo reading.');
+        return;
+      }
+
+      const printPages = document.getElementById('siloPrintPages').innerHTML;
+      printWindow.document.open();
+      printWindow.document.write(`<!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <title>Silo Reading Report</title>
+            <style>
+              @page { size: A4 portrait; margin: 0; }
+              * { box-sizing: border-box; }
+              html, body { margin: 0; padding: 0; width: 210mm; font-family: Arial, sans-serif; }
+              .silo-print-page {
+                display: flex;
+                flex-direction: column;
+                width: 210mm;
+                height: 297mm;
+                padding: 12mm 13mm 11mm;
+                overflow: hidden;
+                background: #fff;
+                break-after: auto;
+                page-break-after: auto;
+              }
+              .silo-print-page + .silo-print-page {
+                break-before: page;
+                page-break-before: always;
+              }
+              .silo-print-heading { position: relative; min-height: 74px; margin-bottom: 10px; padding-top: 1px; color: #000; text-align: center; }
+              .silo-print-heading strong { display: block; font-size: 17px; letter-spacing: .3px; }
+              .silo-print-heading span { display: block; margin-top: 2px; font-size: 14px; }
+              .silo-print-meta { position: absolute; top: 41px; left: 0; display: grid; gap: 7px; width: 210px; text-align: left; font-size: 11px; font-weight: 800; }
+              .silo-print-meta span { display: flex; align-items: end; gap: 7px; }
+              .silo-print-meta i { flex: 1; min-height: 15px; border-bottom: 1px solid #111; }
+              .silo-print-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); flex: 1; min-height: 0; gap: 4px 10px; }
+              .silo-print-house { display: flex; flex-direction: column; min-height: 0; padding: 3px 5px; color: #000; }
+              .silo-print-house h2 { margin: 0 0 2px; font-size: 14px; text-align: center; }
+              .silo-print-pair { display: flex; flex: 1; align-items: center; justify-content: center; gap: 4px; min-height: 0; }
+              .silo-print-unit { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; min-width: 0; height: 100%; }
+              .silo-print-svg { display: block; width: min(100%, 110px); height: auto; max-height: calc(100% - 24px); }
+              .silo-print-label { min-width: 62px; padding: 2px 7px; border: 1.5px solid #111; font-size: 10px; font-weight: 800; text-align: center; }
+              .silo-print-capacity { margin-top: 2px; color: #333; font-size: 8px; text-align: center; }
+            </style>
+          </head>
+          <body>${printPages}</body>
+        </html>`);
+      printWindow.document.close();
       closeSiloPrintPreview();
-      document.body.classList.add('silo-reading-printing');
-      window.addEventListener('afterprint', function() {
-        document.body.classList.remove('silo-reading-printing');
-        document.getElementById('siloPrintPreviewModal').style.display = 'flex';
+
+      printWindow.addEventListener('afterprint', function() {
+        printWindow.close();
       }, { once: true });
-      window.print();
+      setTimeout(function() {
+        printWindow.print();
+      }, 100);
     }
 
     function setSiloReadingStatus(message, isError) {

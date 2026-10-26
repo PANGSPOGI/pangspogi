@@ -111,7 +111,7 @@ function getGeminiSchema() {
         items: {
           type: 'OBJECT',
           properties: {
-            houseNumber: { type: 'INTEGER', enum: VALID_HOUSE_NUMBERS },
+            houseNumber: { type: 'INTEGER' },
             silo: { type: 'STRING', enum: ['Silo1', 'Silo2'] },
             mark: {
               type: 'STRING',
@@ -202,6 +202,7 @@ export default async function handler(req, res) {
       console.error('Gemini silo image recognition request was rejected:', {
         status: response.status,
         statusText: providerResult && providerResult.error && providerResult.error.status,
+        message: providerResult && providerResult.error && providerResult.error.message,
       });
       requestError('Gemini could not process this photo. Check the API key and Gemini API quota, then try again.', 502);
     }
