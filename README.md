@@ -35,6 +35,8 @@ The shared secret secures the Apps Script bridge; it does not log users into
 the Vercel app. If the deployed app is publicly reachable, its API routes can
 be called by visitors, so restrict app access with Vercel Deployment
 Protection or another authentication layer before using it with real data.
+This is especially important after adding photo reading, because public access
+to that endpoint can incur OpenAI API charges.
 
 The spreadsheet keeps the existing `Readings` tab (it is created with headers
 if missing). The app creates a `FeedForecasts` tab on the first forecast save.
@@ -66,6 +68,22 @@ silos and map fill height to stored feed volume:
 | FH1-FH12 | Rotem Silo 1 | 2.71 m | 0.50 m | 4 x 0.83 m | 1.93 m | 20,238.5 kg |
 | FH1-FH12 | Rotem Silo 2 | 2.71 m | 0.50 m | 3 x 0.83 m | 1.93 m | 16,158.5 kg |
 | FH13-FH19 | SKOV Silo 1 and 2 | 3.00 m | 0.80 m | 3 x 0.83 m | 2.45 m | 21,522 kg |
+
+## Printed and photo silo readings
+
+Use **Print Silo Reading** to preview the paper form before printing. It creates
+three pages in the same six-house layout as the sample, with each silo drawn
+from its tracker profile. **Upload Silo Photo** opens a drop-or-browse screen
+with an image preview. After choosing **Read Silo Photo**, review and edit the
+detected date, time, and silo fill marks before syncing; crossed-out or
+unreadable silos are left unchanged. Recognized fill heights are converted to
+inventory using the matching silo profile.
+
+Photo reading uses OpenAI's vision API. Add `OPENAI_API_KEY` to the server
+environment (for example, Vercel Environment Variables or `.env.local`). Keep
+the key server-side. Uploaded photos are sent to OpenAI for recognition; do
+not upload photos you are not authorized to share. Image reading requires this
+key, while printing does not.
 
 ## Weekly delivery forecast
 
