@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>MANGO SILO TRACKER</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: #f2f2f2; color: #000000; }
+
+    .header { background: #000000; color: #ffffff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+    .header-title { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
+    .sync-indicator { font-size: 11px; padding: 3px 8px; border-radius: 12px; background: #15803d; color: #fff; font-weight: 700; }
+    .sync-indicator.unsaved { background: #dc2626; }
+    .sync-indicator.syncing { background: #d97706; }
+    .close-btn { background: #333333; border: 1px solid #777777; color: #fff; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+    .main-content { max-width: 1400px; margin: 0 auto; padding: 20px; text-align: center; }
+
+    .top-bar { background: #ffffff; border: 2px solid #000000; border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .meta-inputs { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    .meta-field { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; }
+    .meta-field input { border: none; border-bottom: 2px solid #000000; padding: 2px 6px; font-size: 14px; font-weight: 700; outline: none; background: transparent; }
+
+    .filter-group { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; }
+    .btn-group { display: inline-flex; border: 2px solid #000000; border-radius: 6px; overflow: hidden; }
+    .btn-group-opt { padding: 6px 14px; font-size: 13px; font-weight: 800; border: none; background: #ffffff; cursor: pointer; color: #000000; border-right: 1px solid #000000; }
+    .btn-group-opt:last-child { border-right: none; }
+    .btn-group-opt.active { background: #000000; color: #ffffff; }
+
+    .sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 30px; }
+    @media (max-width: 1100px) { .sheet-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 700px) { .sheet-grid { grid-template-columns: 1fr; } }
+
+    .house-box { background: #ffffff; border: 2px solid #000000; border-radius: 8px; padding: 12px; text-align: center; }
+    .house-title { font-size: 18px; font-weight: 900; margin-bottom: 6px; letter-spacing: 0.5px; border-bottom: 2px solid #000000; padding-bottom: 4px; }
+
+    .placement-box { font-size: 11px; font-weight: 800; margin-bottom: 8px; display: flex; justify-content: center; align-items: center; gap: 5px; background: #f8fafc; padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
+    .placement-box input { border: 1px solid #000; font-size: 11px; font-weight: 700; border-radius: 3px; padding: 1px 3px; }
+
+    .silo-pair { display: flex; justify-content: space-around; gap: 10px; }
+    .silo-unit { display: flex; flex-direction: column; align-items: center; width: 160px; }
+
+    .canvas-container { position: relative; width: 150px; height: 210px; background: #ffffff; }
+    canvas { width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+
+    .silo-label-box { border: 2px solid #000000; background: #ffffff; padding: 3px 8px; font-weight: 900; font-size: 12px; margin-top: -5px; margin-bottom: 4px; width: 90px; text-align: center; }
+    .status-badge { font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 4px; color: #ffffff; display: inline-block; margin-bottom: 4px; text-transform: uppercase; border: 1px solid #000000; }
+    
+    .status-safe { background-color: #008000; }
+    .status-moderate { background-color: #0284c7; }
+    .status-critical { background-color: #ea580c; }
+    .status-empty { background-color: #dc2626; }
+    .status-closetoempty { background-color: #5b21b6; }
+
+    .readout-box { font-size: 12px; font-weight: 800; color: #000000; margin-bottom: 6px; line-height: 1.2; }
+
+    .mini-actions { display: flex; gap: 2px; width: 100%; flex-wrap: wrap; }
+    .btn-mini { flex: 1; padding: 4px 1px; font-size: 9.5px; font-weight: 800; border: 1.5px solid #000000; background: #ffffff; cursor: pointer; border-radius: 4px; }
+    .btn-mini:hover { background: #e0e0e0; }
+    .btn-add { background: #dfeefd; color: #0284c7; border-color: #0284c7; }
+    .btn-sub { background: #fef3c7; color: #b45309; border-color: #b45309; }
+    .btn-empty { background: #fee2e2; color: #dc2626; border-color: #dc2626; }
+
+    .global-actions { position: sticky; bottom: 10px; background: #ffffff; border: 2px solid #000000; padding: 12px; border-radius: 8px; display: flex; justify-content: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); flex-wrap: wrap; }
+    .btn-lg { padding: 10px 22px; font-weight: 800; font-size: 13px; border-radius: 6px; border: 2px solid #000000; cursor: pointer; }
+    .btn-update { background-color: #0284c7; color: #ffffff; }
+    .btn-clear { background: #ffffff; color: #000000; }
+    .btn-primary { background: #000000; color: #ffffff; }
+    .btn-forecast { background: #365c28; color: #ffffff; }
+
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 100; }
+    .modal-box { background: #ffffff; padding: 20px; border-radius: 8px; max-width: 1380px; width: 98%; text-align: center; border: 2px solid #000000; max-height: 98vh; display: flex; flex-direction: column; overflow-y: auto; }
+    .modal-box h3 { margin-bottom: 10px; font-size: 22px; font-weight: 900; letter-spacing: 0.5px; }
+
+    .report-capture-area { background: #ffffff; padding: 18px; border-radius: 6px; border: 2px solid #000; }
+    .forecast-box { max-width: 1160px; height: min(100vh, 820px); overflow: hidden; }
+    .forecast-report { padding: 18px; border: 2px solid #000; background: #fff; }
+    .forecast-brand { margin: 0 auto 8px; max-width: 620px; padding: 4px; background: #365c28; color: #fff; font-size: 16px; font-weight: 800; }
+    .forecast-brand-line { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 10px; }
+    .forecast-logo { width: 135px; color: #ed1c24; font-family: Georgia, serif; font-size: 30px; font-style: italic; font-weight: 900; }
+    .forecast-week { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 12px 0 18px; font-weight: 800; }
+    .forecast-week input { padding: 5px; border: 1px solid #000; border-radius: 3px; font-weight: 700; }
+    .forecast-table-wrap { width: 100%; overflow-x: auto; }
+    .forecast-table { width: 100%; min-width: 980px; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+    .forecast-table th, .forecast-table td { border: 1.5px solid #000; padding: 6px 4px; text-align: center; font-weight: 800; }
+    .forecast-table thead tr:first-child th { background: #c7dfb5; }
+    .forecast-table .forecast-type { width: 135px; }
+    .forecast-table .forecast-unit { width: 90px; }
+    .forecast-table .forecast-total { width: 80px; background: #dedede; }
+    .forecast-table .forecast-date { display: block; margin-top: 3px; font-size: 11px; font-weight: 600; }
+    .forecast-table input { width: 66px; max-width: 100%; padding: 5px 2px; text-align: center; border: 1px solid #555; border-radius: 3px; font-weight: 800; }
+    .forecast-table select { width: 100%; padding: 5px 2px; border: 1px solid #555; border-radius: 3px; font-weight: 800; }
+    .forecast-notes { display: block; margin-top: 10px; text-align: left; font-weight: 800; }
+    .forecast-notes textarea { display: block; width: 100%; min-height: 48px; margin-top: 4px; padding: 6px; border: 1.5px solid #000; border-radius: 4px; font: inherit; font-weight: 500; resize: vertical; }
+    .forecast-save-status { min-height: 18px; margin-top: 8px; text-align: left; font-size: 12px; font-weight: 700; }
+    .forecast-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    @media (max-width: 800px) {
+      .forecast-box { width: 100vw; max-width: none; height: auto; max-height: 100vh; max-height: 100dvh; padding: 6px; border-radius: 0; overflow-y: auto; }
+      .forecast-report { flex: 0 0 auto; min-height: 0; padding: 7px; overflow: hidden; }
+      .forecast-brand-line { gap: 6px; margin-bottom: 3px; }
+      .forecast-logo, .forecast-brand-line > span[aria-hidden="true"] { width: 68px !important; }
+      .forecast-logo { font-size: 20px; }
+      .forecast-brand { margin-bottom: 2px; padding: 3px; font-size: 12px; }
+      .forecast-report > h3 { margin-bottom: 3px; font-size: 15px; }
+      .forecast-week { gap: 6px; margin: 3px 0 5px; font-size: 11px; }
+      .forecast-week input { min-width: 120px; padding: 3px; font-size: 11px; }
+      .forecast-week span { font-size: 10px; }
+      .forecast-table-wrap { overflow: hidden; }
+      .forecast-table { min-width: 0; font-size: 9px; }
+      .forecast-table th, .forecast-table td { padding: 2px 1px; }
+      .forecast-table tbody td:first-child { width: 90px; }
+      .forecast-table tbody td:nth-child(2) { width: 62px; }
+      .forecast-table .forecast-total { width: 46px; }
+      .forecast-table .forecast-date { margin-top: 1px; font-size: 8px; }
+      .forecast-table input, .forecast-table select { min-width: 0; height: 25px; padding: 2px 0; font-size: 9px; }
+      .forecast-notes { margin-top: 5px; font-size: 11px; }
+      .forecast-notes textarea { min-height: 34px; height: 34px; margin-top: 2px; padding: 4px; font-size: 11px; }
+      .forecast-save-status { flex: 0 0 auto; min-height: 14px; margin-top: 3px; font-size: 10px; }
+      .forecast-actions { flex: 0 0 auto; gap: 5px; margin-top: 3px; }
+      .forecast-actions .btn-lg { padding: 6px 8px; font-size: 10px; }
+    }
+    @media (max-width: 480px) {
+      .forecast-table tbody td:first-child { width: 76px; }
+      .forecast-table tbody td:nth-child(2) { width: 54px; }
+      .forecast-table .forecast-total { width: 40px; }
+      .forecast-table th, .forecast-table td { padding-right: 0; padding-left: 0; }
+      .forecast-table input, .forecast-table select { font-size: 8px; }
+      .forecast-actions .btn-lg { padding-right: 5px; padding-left: 5px; font-size: 9px; }
+    }
+    @media print {
+      body.forecast-printing * { visibility: hidden !important; }
+      body.forecast-printing #forecastModal,
+      body.forecast-printing #forecastModal * { visibility: visible !important; }
+      body.forecast-printing #forecastModal { display: block !important; position: absolute; inset: 0; background: #fff; }
+      body.forecast-printing #forecastModal .forecast-box { width: 100%; max-width: none; max-height: none; border: 0; overflow: visible; }
+      body.forecast-printing .forecast-no-print { display: none !important; }
+      body.forecast-printing .forecast-table-wrap { overflow: visible; }
+      body.forecast-printing .forecast-table { min-width: 0; font-size: 9px; }
+      body.forecast-printing .forecast-table input { width: 42px; }
+      body.forecast-printing .forecast-table select { border: 0; appearance: none; }
+      body.forecast-printing .forecast-table input,
+      body.forecast-printing .forecast-week input,
+      body.forecast-printing .forecast-notes textarea { border: 0; appearance: none; }
+      body.forecast-printing .forecast-notes textarea { resize: none; }
+    }
+
+    .modal-header-inputs { display: flex; justify-content: center; gap: 30px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border: 2px solid #000; border-radius: 6px; }
+    .modal-header-inputs div { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 15px; }
+    .modal-header-inputs input { border: 1.5px solid #000; padding: 5px 10px; border-radius: 4px; font-weight: 800; outline: none; font-size: 14px; background: #fff; text-align: center; }
+
+    .split-tables-wrapper { display: flex; gap: 14px; align-items: flex-start; }
+    .table-col { flex: 1; }
+
+    .summary-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; table-layout: fixed; }
+    .summary-table th, .summary-table td { border: 1.5px solid #000000; padding: 4px 1px; text-align: center; font-weight: 800; vertical-align: middle; height: 38px; }
+    .summary-table th { background-color: #b8d5ed; color: #000000; font-size: 11px; font-weight: 900; }
+    .summary-table td.silo-val { text-align: center; font-size: 11px; }
+    
+    .age-input { width: 36px; height: 26px; text-align: center; font-weight: 900; font-size: 11px; border: 1.5px solid #000; border-radius: 4px; outline: none; background: #fff; display: inline-block; }
+
+    .remarks-select { width: 100%; height: 26px; font-weight: 900; font-size: 8.5px; border: 1px solid #000; text-align: center; text-align-last: center; cursor: pointer; outline: none; border-radius: 4px; padding: 0; }
+    
+    .rem-critical { background-color: #ea580c; color: #ffffff; }
+    .rem-empty { background-color: #dc2626; color: #ffffff; }
+    .rem-moderate { background-color: #0284c7; color: #ffffff; }
+    .rem-safe { background-color: #008000; color: #ffffff; }
+    .rem-closetoempty { background-color: #5b21b6; color: #ffffff; }
+
+    .export-badge { display: inline-block; width: 100%; padding: 4px 0; font-weight: 900; font-size: 8.5px; border-radius: 4px; color: #ffffff; border: 1px solid #000; text-align: center; text-transform: uppercase; }
+
+    .status-summary-box { display: flex; justify-content: space-around; background: #f1f5f9; border: 2px solid #000000; padding: 12px; border-radius: 6px; margin-top: 15px; font-weight: 900; font-size: 13px; flex-wrap: wrap; gap: 8px; }
+    .status-item { display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000; display: inline-block; }
+
+    .input-group { margin-bottom: 15px; text-align: left; }
+    .input-group label { display: block; font-weight: 800; font-size: 12px; margin-bottom: 5px; }
+    .input-group input { width: 100%; padding: 8px; border: 2px solid #000000; border-radius: 4px; font-size: 14px; font-weight: 700; outline: none; }
+
+    .custom-alert-modal { max-width: 420px; text-align: center; padding: 25px; border: 3px solid #000; border-radius: 12px; background: #fff; }
+    .warning-icon { font-size: 48px; color: #dc2626; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-title">
+      MANGO SILO TRACKER 
+      <span class="sync-indicator" id="syncStatus">SAVED</span>
+    </div>
+    <button class="close-btn" onclick="confirmExit()">Close</button>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="meta-inputs">
+        <div class="meta-field">
+          <label>Date Today:</label>
+          <input type="date" id="recordDate" onchange="recalculateAllAges(); markAsUnsaved();">
+        </div>
+        <div class="meta-field">
+          <label>Time:</label>
+          <input type="time" id="recordTime" onchange="markAsUnsaved();">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Display Filter:</label>
+        <div class="btn-group">
+          <button class="btn-group-opt active" id="btn_1_12" onclick="setFilter('1-12')">FH 1 to 12</button>
+          <button class="btn-group-opt" id="btn_13_19" onclick="setFilter('13-19')">FH 13 to 19</button>
+          <button class="btn-group-opt" id="btn_all" onclick="setFilter('ALL')">All Houses</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-grid" id="housesContainer"></div>
+
+    <div class="global-actions">
+      <button class="btn-lg btn-update" id="btnUpdate" onclick="manualUpdateData()">🔄 Update Data</button>
+      <button class="btn-lg btn-clear" onclick="clearVisibleSilos()">Reset Visible Silos</button>
+      <button class="btn-lg btn-clear" onclick="showSummaryTable()">House Summary</button>
+      <button class="btn-lg btn-forecast" onclick="openForecast()">Delivery Forecast</button>
+      <button class="btn-lg btn-primary" id="saveBtn" onclick="manualSave()">💾 Save Now</button>
+    </div>
+  </div>
+
+  <!-- Unsaved Warning Modal -->
+  <div class="modal-overlay" id="unsavedModalOverlay">
+    <div class="modal-box custom-alert-modal">
+      <div class="warning-icon">⚠️</div>
+      <h3 style="font-size: 18px; font-weight: 900; margin-bottom: 15px; color: #000;">
+        HINDI MOPA NASAVE BOSS! BAKA UMULIT KA NYAN
+      </h3>
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-lg btn-clear" style="flex: 1;" onclick="closeUnsavedModal()">CANCEL</button>
+        <button class="btn-lg btn-primary" style="flex: 1;" onclick="manualSaveAndExit()">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModalOverlay">
+    <div class="modal-box custom-alert-modal" style="max-width: 350px;">
+      <div class="warning-icon" style="color: #16a34a;">✓</div>
+      <h3 style="font-size: 20px; font-weight: 900; margin-bottom: 8px;">SUCCESS!</h3>
+      <p style="font-size: 14px; font-weight: 700; color: #333; margin-bottom: 18px;">All readings saved to Google Sheets!</p>
+      <button class="btn-lg btn-primary" style="width: 100%;" onclick="closeSuccessModal()">OK</button>
+    </div>
+  </div>
+
+  <!-- House Summary Table Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <div id="reportCaptureArea" class="report-capture-area">
+        <h3 id="modalTitle">MANGO HOUSE SUMMARY REPORT</h3>
+        
+        <div class="modal-header-inputs">
+          <div>
+            <label>Date:</label>
+            <input type="date" id="modalRecordDate" onchange="document.getElementById('recordDate').value=this.value; recalculateAllAges();">
+            <span id="exportDateText" style="display:none; font-weight:900;"></span>
+          </div>
+          <div>
+            <label>Time:</label>
+            <input type="time" id="modalRecordTime">
+            <span id="exportTimeText" style="display:none; font-weight:900;"></span>
+          </div>
+        </div>
+
+        <div class="split-tables-wrapper">
+          <div class="table-col">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th style="width: 7%;">HSE #</th>
+                  <th style="width: 7%;">AGE</th>
+                  <th style="width: 21%;">SILO 1</th>
+                  <th style="width: 21%;">SILO 2</th>
+                  <th style="width: 10%;">TOTAL</th>
+                  <th style="width: 14%;">HRS TO CONSUME</th>
+                  <th style="width: 20%;">REMARKS</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTableBodyLeft"></tbody>
+            </table>
+          </div>
+
+          <div class="table-col">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th style="width: 7%;">HSE #</th>
+                  <th style="width: 7%;">AGE</th>
+                  <th style="width: 21%;">SILO 1</th>
+                  <th style="width: 21%;">SILO 2</th>
+                  <th style="width: 10%;">TOTAL</th>
+                  <th style="width: 14%;">HRS TO CONSUME</th>
+                  <th style="width: 20%;">REMARKS</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTableBodyRight"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="status-summary-box">
+          <div class="status-item"><span class="status-dot" style="background: #008000;"></span> SAFE - <span id="countSafe">0</span></div>
+          <div class="status-item"><span class="status-dot" style="background: #0284c7;"></span> MODERATE - <span id="countModerate">0</span></div>
+          <div class="status-item"><span class="status-dot" style="background: #ea580c;"></span> CRITICAL - <span id="countCritical">0</span></div>
+          <div class="status-item"><span class="status-dot" style="background: #5b21b6;"></span> CLOSE TO EMPTY - <span id="countCloseToEmpty">0</span></div>
+          <div class="status-item"><span class="status-dot" style="background: #dc2626;"></span> EMPTY - <span id="countEmpty">0</span></div>
+        </div>
+      </div>
+
+      <div id="modalActions" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px;">
+        <button class="btn-lg btn-image" onclick="exportSummaryAsImage()">📷 Copy / Download Image</button>
+        <button class="btn-lg btn-primary" onclick="closeModal()">Close Window</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="forecastModal" onclick="if(event.target===this) closeForecast()">
+    <div class="modal-box forecast-box">
+      <input type="hidden" id="forecastLoadedWeek">
+      <div id="forecastReport" class="forecast-report">
+        <div class="forecast-brand-line">
+          <span class="forecast-logo">Bounty</span>
+          <div class="forecast-brand">MANGO FARM</div>
+          <span aria-hidden="true" style="width:135px;"></span>
+        </div>
+        <h3>WEEKLY FEED DELIVERY FORECAST</h3>
+        <div class="forecast-week">
+          <label for="forecastStartDate">Week starting:</label>
+          <input type="date" id="forecastStartDate" onchange="changeForecastWeek(this.value)">
+          <span id="forecastWeekLabel"></span>
+        </div>
+        <div class="forecast-table-wrap">
+          <table class="forecast-table" id="forecastTable"></table>
+        </div>
+        <label class="forecast-notes" for="forecastNotes">
+          Notes
+          <textarea id="forecastNotes" maxlength="2000" placeholder="Add notes about this week's delivery forecast..."></textarea>
+        </label>
+      </div>
+      <div class="forecast-save-status" id="forecastSaveStatus" role="status" aria-live="polite"></div>
+      <div class="forecast-actions forecast-no-print">
+        <button class="btn-lg btn-clear" id="forecastImageButton" onclick="exportForecastImage()">📷 Download Image</button>
+        <button class="btn-lg btn-clear" onclick="printForecast()">Print</button>
+        <button class="btn-lg btn-update" id="forecastSaveButton" onclick="saveForecast()">Save Forecast</button>
+        <button class="btn-lg btn-primary" onclick="closeForecast()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Subtract Feed Modal -->
+  <div class="modal-overlay" id="addKgModalOverlay">
+    <div class="modal-box" style="max-width: 400px;">
+      <h3 id="addKgTitle">Add Feed to Silo</h3>
+      <div class="input-group">
+        <label id="addKgSubtitle">Current Level: 0 kg</label>
+        <input type="number" id="inputAddKg" placeholder="Enter kilograms (e.g. 500)">
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-lg btn-clear" style="flex: 1;" onclick="closeAddKgModal()">Cancel</button>
+        <button class="btn-lg btn-primary" id="btnConfirmFeedAction" style="flex: 1;" onclick="confirmFeedAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const allHouseNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    let activeFilter = '1-12';
+    let farmData = {};
+    let placementDates = {};
+    let customRemarks = {};
+    let lastSavedDateVal = "";
+    let lastSavedTimeVal = "";
+    let targetAddSilo = null;
+    let feedActionType = 'ADD'; 
+    const forecastFeedTypes = ['BSC', 'BSP', 'CBC', 'BFP'];
+    const forecastUnits = ['trucks', 'bags'];
+    const forecastRowCount = 6;
+    let forecastRows = [];
+    let isForecastDirty = false;
+    let forecastIsLoading = false;
+    let forecastLoadRequestId = 0;
+
+    let isDirty = false;
+    let pendingExitAction = false;
+
+    window.addEventListener('beforeunload', function (e) {
+      if (isDirty || isForecastDirty) {
+        e.preventDefault();
+        e.returnValue = 'HINDI MOPA NASAVE BOSS! BAKA UMULIT KA NYAN';
+        return e.returnValue;
+      }
+    });
+
+    function getPSTDateAndTimeString() {
+      const now = new Date();
+      const pstOffsetMs = 8 * 60 * 60 * 1000; 
+      const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const pstDate = new Date(utcMs + pstOffsetMs);
+
+      const year = pstDate.getFullYear();
+      const month = String(pstDate.getMonth() + 1).padStart(2, '0');
+      const day = String(pstDate.getDate()).padStart(2, '0');
+      const hours = String(pstDate.getHours()).padStart(2, '0');
+      const minutes = String(pstDate.getMinutes()).padStart(2, '0');
+
+      return {
+        dateStr: `${year}-${month}-${day}`,
+        timeStr: `${hours}:${minutes}`
+      };
+    }
+
+    function loadLocalPlacementBackup() {
+      try {
+        const stored = localStorage.getItem('silo_placement_dates');
+        if (stored) {
+          placementDates = JSON.parse(stored);
+        }
+      } catch(e) { }
+    }
+
+    function saveLocalPlacementBackup() {
+      try {
+        localStorage.setItem('silo_placement_dates', JSON.stringify(placementDates));
+      } catch(e) { }
+    }
+
+    function initData() {
+      const pst = getPSTDateAndTimeString();
+      document.getElementById('recordDate').value = pst.dateStr;
+      document.getElementById('recordTime').value = pst.timeStr;
+
+      loadLocalPlacementBackup();
+
+      allHouseNumbers.forEach(num => {
+        const houseKey = `FH${num}`;
+        if (!placementDates[houseKey]) {
+          placementDates[houseKey] = '';
+        }
+
+        const maxCap1 = (num <= 12) ? 20238.5 : 21522;
+        const maxCap2 = (num <= 12) ? 16158.5 : 21522;
+
+        farmData[houseKey] = [
+          { name: 'Silo1', maxCap: maxCap1, points: getInitialLine(), isEmpty: false, currentKg: 0, currentPct: 0, status: 'SAFE' },
+          { name: 'Silo2', maxCap: maxCap2, points: getInitialLine(), isEmpty: false, currentKg: 0, currentPct: 0, status: 'SAFE' }
+        ];
+      });
+
+      fetchFromCloud();
+    }
+
+    function markAsUnsaved() {
+      isDirty = true;
+      updateSyncBadge("UNSAVED CHANGES", "unsaved");
+    }
+
+    function updateSyncBadge(text, type) {
+      const badge = document.getElementById('syncStatus');
+      if (badge) {
+        badge.innerText = text;
+        badge.className = `sync-indicator ${type || ''}`;
+      }
+    }
+
+    function confirmExit() {
+      if (isDirty) {
+        pendingExitAction = true;
+        document.getElementById('unsavedModalOverlay').style.display = 'flex';
+      } else {
+        window.close();
+      }
+    }
+
+    function closeUnsavedModal() {
+      document.getElementById('unsavedModalOverlay').style.display = 'none';
+      pendingExitAction = false;
+    }
+
+    function manualSaveAndExit() {
+      closeUnsavedModal();
+      executeSave(true, true);
+    }
+
+    function showSuccessModal() {
+      document.getElementById('successModalOverlay').style.display = 'flex';
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModalOverlay').style.display = 'none';
+    }
+
+    function manualSave() {
+      executeSave(true, false);
+    }
+
+    function executeSave(isManual, shouldCloseWindow) {
+      updateSyncBadge("SAVING...", "syncing");
+      saveLocalPlacementBackup();
+
+      let payload = [];
+      let dateVal = document.getElementById('recordDate').value;
+      let timeVal = document.getElementById('recordTime').value;
+
+      if (!dateVal || !timeVal) {
+        const pst = getPSTDateAndTimeString();
+        if (!dateVal) dateVal = pst.dateStr;
+        if (!timeVal) timeVal = pst.timeStr;
+        document.getElementById('recordDate').value = dateVal;
+        document.getElementById('recordTime').value = timeVal;
+      }
+
+      allHouseNumbers.forEach(num => {
+        const houseKey = `FH${num}`;
+        const age = computeFlockAge(houseKey);
+        const pDate = placementDates[houseKey] || '';
+        const cRemark = customRemarks[houseKey] || '';
+
+        if (farmData[houseKey]) {
+          farmData[houseKey].forEach(s => {
+            payload.push({
+              house: houseKey,
+              silo: s.name,
+              kg: s.isEmpty ? 0 : (s.currentKg || 0),
+              pct: s.isEmpty ? 0 : (s.currentPct || 0),
+              status: s.isEmpty ? 'EMPTY' : (s.status || 'SAFE'),
+              age: age,
+              date: dateVal,
+              time: timeVal,
+              points: s.points || [],
+              placementDate: pDate,
+              customRemark: cRemark
+            });
+          });
+        }
+      });
+
+      fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(async function(response) {
+          const result = await response.json();
+          if (!response.ok || (result && result.error)) {
+            throw new Error(result && result.error ? result.error : 'Unable to save tracker data.');
+          }
+          isDirty = false;
+          lastSavedDateVal = dateVal;
+          lastSavedTimeVal = timeVal;
+          updateSyncBadge("SAVED", "");
+          if (shouldCloseWindow) {
+            window.close();
+          } else if (isManual) {
+            showSuccessModal();
+          }
+        })
+        .catch(function(err) {
+          updateSyncBadge("SAVE ERROR", "unsaved");
+          alert("Error saving: " + (err && err.message ? err.message : "Unknown network issue"));
+        });
+    }
+
+    function manualUpdateData() {
+      const pst = getPSTDateAndTimeString();
+      const currentDateObj = new Date(`${pst.dateStr}T${pst.timeStr}:00`);
+
+      let baseDate = lastSavedDateVal || document.getElementById('recordDate').value;
+      let baseTime = lastSavedTimeVal || document.getElementById('recordTime').value;
+
+      if (baseDate && baseTime) {
+        const lastSaveObj = new Date(`${baseDate}T${baseTime}:00`);
+        const diffMs = currentDateObj - lastSaveObj;
+        const diffHours = diffMs / (1000 * 60 * 60);
+
+        if (diffHours > 0) {
+          allHouseNumbers.forEach(num => {
+            const houseKey = `FH${num}`;
+            const ratePerHour = (num <= 12) ? 270 : 312;
+            const totalDeduction = diffHours * ratePerHour;
+            applyDeductionToHouse(houseKey, totalDeduction);
+          });
+        }
+      }
+
+      document.getElementById('recordDate').value = pst.dateStr;
+      document.getElementById('recordTime').value = pst.timeStr;
+
+      recalculateAllAges();
+      renderHouses();
+      markAsUnsaved();
+    }
+
+    function applyDeductionToHouse(houseKey, totalDeductionKg) {
+      const silos = farmData[houseKey];
+      if (!silos || silos.length < 2) return;
+
+      let s1 = silos[0], s2 = silos[1];
+      let s1Kg = s1.isEmpty ? 0 : s1.currentKg;
+      let s2Kg = s2.isEmpty ? 0 : s2.currentKg;
+
+      if (s1Kg <= 0 && s2Kg <= 0) return;
+
+      if (s1Kg > 0 && s2Kg > 0) {
+        let halfDeduct = totalDeductionKg / 2;
+        let newS1 = s1Kg - halfDeduct;
+        let newS2 = s2Kg - halfDeduct;
+
+        if (newS1 < 0) { newS2 += newS1; newS1 = 0; }
+        if (newS2 < 0) { newS1 += newS2; newS2 = 0; }
+
+        setSiloKgDirectly(houseKey, 0, Math.max(0, newS1));
+        setSiloKgDirectly(houseKey, 1, Math.max(0, newS2));
+      } else if (s1Kg > 0) {
+        setSiloKgDirectly(houseKey, 0, Math.max(0, s1Kg - totalDeductionKg));
+      } else if (s2Kg > 0) {
+        setSiloKgDirectly(houseKey, 1, Math.max(0, s2Kg - totalDeductionKg));
+      }
+    }
+
+    function setSiloKgDirectly(houseKey, idx, newKg) {
+      const silo = farmData[houseKey][idx];
+      if (newKg <= 0) {
+        silo.isEmpty = true;
+        silo.currentKg = 0;
+        silo.currentPct = 0;
+        silo.status = 'EMPTY';
+        silo.points = [{ x: 10, y: 192 }, { x: 140, y: 192 }];
+        return;
+      }
+
+      silo.isEmpty = false;
+      const targetPct = newKg / silo.maxCap;
+      const targetAvgY = siloLevelY(houseKey, idx, targetPct);
+      const moundHeight = 14 * Math.sin(Math.PI * targetPct); 
+
+      const minX = 10, maxX = 140, midX = 75;
+      let tempPoints = [], sumCurveOffset = 0;
+
+      for (let x = minX; x <= maxX; x += 5) {
+        const normDist = (x - midX) / (maxX - minX); 
+        const curveOffset = Math.cos(normDist * Math.PI) * moundHeight;
+        tempPoints.push({ x: x, offset: curveOffset });
+        sumCurveOffset += curveOffset;
+      }
+
+      const compensatedBaseY = targetAvgY + (sumCurveOffset / tempPoints.length);
+      silo.points = tempPoints.map(p => ({ x: p.x, y: Math.max(12, Math.min(192, compensatedBaseY - p.offset)) }));
+      
+      delete customRemarks[houseKey];
+    }
+
+    function fetchFromCloud(callback) {
+      fetch('/api/state')
+        .then(async function(response) {
+          const state = await response.json();
+          if (!response.ok || (state && state.error)) {
+            throw new Error(state && state.error ? state.error : 'Unable to load tracker data.');
+          }
+          if (state) {
+            if (state.placementDates) {
+              Object.keys(state.placementDates).forEach(k => {
+                if (state.placementDates[k]) placementDates[k] = state.placementDates[k];
+              });
+              saveLocalPlacementBackup();
+            }
+            if (state.customRemarks) customRemarks = state.customRemarks;
+            if (state.lastSavedDate) lastSavedDateVal = state.lastSavedDate;
+            if (state.lastSavedTime) lastSavedTimeVal = state.lastSavedTime;
+
+            if (state.farmData && Object.keys(state.farmData).length > 0) {
+              Object.keys(state.farmData).forEach(function(houseKey) {
+                if (farmData[houseKey] && state.farmData[houseKey]) {
+                  state.farmData[houseKey].forEach(function(s, idx) {
+                    if (s) {
+                      let loadedKg = Number(s.currentKg) || 0;
+                      let loadedIsEmpty = s.isEmpty || s.status === 'EMPTY' || loadedKg <= 0;
+                      let targetPoints = [];
+
+                      if (s.points && Array.isArray(s.points) && s.points.length > 0) {
+                        targetPoints = s.points;
+                      } else if (!loadedIsEmpty && loadedKg > 0) {
+                        let targetPct = loadedKg / s.maxCap;
+                        let targetAvgY = siloLevelY(houseKey, idx, targetPct);
+                        let minX = 10, maxX = 140;
+                        targetPoints = [{ x: minX, y: targetAvgY }, { x: maxX, y: targetAvgY }];
+                      } else {
+                        targetPoints = [{ x: 10, y: 192 }, { x: 140, y: 192 }];
+                      }
+
+                      farmData[houseKey][idx] = {
+                        name: s.name,
+                        maxCap: s.maxCap,
+                        currentKg: loadedKg,
+                        currentPct: s.currentPct || 0,
+                        status: s.status || 'SAFE',
+                        points: targetPoints,
+                        isEmpty: loadedIsEmpty
+                      };
+                    }
+                  });
+                }
+              });
+            }
+            updateSyncBadge("SAVED", "");
+          }
+          renderHouses();
+          isDirty = false;
+          if (callback) callback();
+        })
+        .catch(function(err) {
+          updateSyncBadge("SYNC ERROR", "unsaved");
+          renderHouses();
+          if (callback) callback();
+          console.error("Error loading tracker data:", err);
+        });
+    }
+
+    // FORMULA: Age = (Date Today - Placement Date) - 1
+    function computeFlockAge(houseKey) {
+      const todayStr = document.getElementById('recordDate').value;
+      const placementStr = placementDates[houseKey];
+      if (!todayStr || !placementStr) return 0;
+
+      const d1 = new Date(todayStr + "T00:00:00");
+      const d2 = new Date(placementStr + "T00:00:00");
+      
+      const diffTime = d1.getTime() - d2.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) - 1;
+      
+      return diffDays;
+    }
+
+    function updatePlacementDate(houseKey, val) {
+      placementDates[houseKey] = val;
+      saveLocalPlacementBackup();
+
+      const ageEl = document.getElementById(`age_${houseKey}`);
+      if (ageEl) ageEl.innerText = computeFlockAge(houseKey);
+
+      markAsUnsaved();
+    }
+
+    function recalculateAllAges() {
+      allHouseNumbers.forEach(function(num) {
+        const houseKey = `FH${num}`;
+        const ageEl = document.getElementById(`age_${houseKey}`);
+        if (ageEl) ageEl.innerText = computeFlockAge(houseKey);
+      });
+    }
+
+    function getInitialLine() {
+      const pts = [];
+      for (let x = 15; x <= 135; x += 5) pts.push({ x: x, y: 100 });
+      return pts;
+    }
+
+    function getSiloProfile(houseKey, idx) {
+      const houseNumber = Number(houseKey.replace('FH', ''));
+      if (houseNumber > 12) {
+        return {
+          diameter: 3,
+          roofHeight: 0.8,
+          cylinderSections: 3,
+          cylinderSectionHeight: 0.83,
+          hopperHeight: 2.45,
+          roofKg: 1598,
+          cylinderSectionKg: 5006.5,
+          hopperKg: 4904.5
+        };
+      }
+
+      if (idx === 0) {
+        return {
+          diameter: 2.71,
+          roofHeight: 0.5,
+          cylinderSections: 4,
+          cylinderSectionHeight: 0.83,
+          hopperHeight: 1.93,
+          roofKg: 816,
+          cylinderSectionKg: 4067.25,
+          hopperKg: 3153.5
+        };
+      }
+
+      return {
+        diameter: 2.71,
+        roofHeight: 0.5,
+        cylinderSections: 3,
+        cylinderSectionHeight: 0.83,
+        hopperHeight: 1.93,
+        roofKg: 816,
+        cylinderSectionKg: 4063,
+        hopperKg: 3153.5
+      };
+    }
+
+    function siloLevelY(houseKey, idx, pct) {
+      const profile = getSiloProfile(houseKey, idx);
+      const topY = 12, bottomY = 192, canvasHeight = bottomY - topY;
+      const roofHeight = profile.roofHeight;
+      const cylinderHeight = profile.cylinderSections * profile.cylinderSectionHeight;
+      const hopperHeight = profile.hopperHeight;
+      const roofKg = profile.roofKg;
+      const cylinderKg = profile.cylinderSections * profile.cylinderSectionKg;
+      const hopperKg = profile.hopperKg;
+      const capacity = roofKg + cylinderKg + hopperKg;
+      const volumeKg = Math.max(0, Math.min(1, pct)) * capacity;
+      const roofPixels = canvasHeight * roofHeight / (roofHeight + cylinderHeight + hopperHeight);
+      const cylinderPixels = canvasHeight * cylinderHeight / (roofHeight + cylinderHeight + hopperHeight);
+      const hopperPixels = canvasHeight * hopperHeight / (roofHeight + cylinderHeight + hopperHeight);
+
+      if (volumeKg <= hopperKg) {
+        return bottomY - hopperPixels * Math.cbrt(volumeKg / hopperKg);
+      }
+      if (volumeKg <= hopperKg + cylinderKg) {
+        const filledCylinderKg = volumeKg - hopperKg;
+        return bottomY - hopperPixels - cylinderPixels * (filledCylinderKg / cylinderKg);
+      }
+
+      const filledRoofKg = volumeKg - hopperKg - cylinderKg;
+      return topY + roofPixels * (1 - Math.cbrt(filledRoofKg / roofKg));
+    }
+
+    function siloPercentAtY(houseKey, idx, y) {
+      const profile = getSiloProfile(houseKey, idx);
+      const topY = 12, bottomY = 192, canvasHeight = bottomY - topY;
+      const roofHeight = profile.roofHeight;
+      const cylinderHeight = profile.cylinderSections * profile.cylinderSectionHeight;
+      const hopperHeight = profile.hopperHeight;
+      const roofKg = profile.roofKg;
+      const cylinderKg = profile.cylinderSections * profile.cylinderSectionKg;
+      const hopperKg = profile.hopperKg;
+      const capacity = roofKg + cylinderKg + hopperKg;
+      const roofPixels = canvasHeight * roofHeight / (roofHeight + cylinderHeight + hopperHeight);
+      const cylinderPixels = canvasHeight * cylinderHeight / (roofHeight + cylinderHeight + hopperHeight);
+      const hopperPixels = canvasHeight * hopperHeight / (roofHeight + cylinderHeight + hopperHeight);
+      const levelY = Math.max(topY, Math.min(bottomY, y));
+      let volumeKg;
+
+      if (levelY >= bottomY - hopperPixels) {
+        volumeKg = hopperKg * Math.pow((bottomY - levelY) / hopperPixels, 3);
+      } else if (levelY >= topY + roofPixels) {
+        const filledCylinder = (bottomY - hopperPixels - levelY) / cylinderPixels;
+        volumeKg = hopperKg + cylinderKg * filledCylinder;
+      } else {
+        const filledRoof = (topY + roofPixels - levelY) / roofPixels;
+        volumeKg = hopperKg + cylinderKg + roofKg * (1 - Math.pow(1 - filledRoof, 3));
+      }
+
+      return Math.max(0, Math.min(100, (volumeKg / capacity) * 100));
+    }
+
+    function setFilter(filter) {
+      activeFilter = filter;
+      document.getElementById('btn_1_12').classList.toggle('active', filter === '1-12');
+      document.getElementById('btn_13_19').classList.toggle('active', filter === '13-19');
+      document.getElementById('btn_all').classList.toggle('active', filter === 'ALL');
+      renderHouses();
+    }
+
+    function renderHouses() {
+      const container = document.getElementById('housesContainer');
+      container.innerHTML = '';
+
+      let targetHouses = [];
+      if (activeFilter === '1-12') targetHouses = allHouseNumbers.filter(n => n <= 12);
+      else if (activeFilter === '13-19') targetHouses = allHouseNumbers.filter(n => n >= 13);
+      else targetHouses = allHouseNumbers;
+
+      targetHouses.forEach(function(num) {
+        const houseKey = `FH${num}`;
+        const silos = farmData[houseKey];
+        if (!silos) return;
+
+        const pDateVal = placementDates[houseKey] || '';
+
+        const houseBox = document.createElement('div');
+        houseBox.className = 'house-box';
+        houseBox.innerHTML = `
+          <div class="house-title">${houseKey}</div>
+          <div class="placement-box">
+            <label>Placement:</label>
+            <input type="date" value="${pDateVal}" onchange="updatePlacementDate('${houseKey}', this.value)">
+          </div>
+          <div class="silo-pair" id="pair_${houseKey}"></div>
+        `;
+        container.appendChild(houseBox);
+
+        const pairContainer = houseBox.querySelector('.silo-pair');
+
+        silos.forEach(function(silo, idx) {
+          const siloUnit = document.createElement('div');
+          siloUnit.className = 'silo-unit';
+          const canvasId = `canvas_${houseKey}_${idx}`;
+
+          siloUnit.innerHTML = `
+            <div class="canvas-container">
+              <canvas id="${canvasId}" width="150" height="210"></canvas>
+            </div>
+            <div class="silo-label-box">${silo.name}</div>
+            <div id="badge_${houseKey}_${idx}" class="status-badge status-safe">SAFE</div>
+            <div class="readout-box" id="readout_${houseKey}_${idx}">0 kg (0%)</div>
+            <div class="mini-actions">
+              <button class="btn-mini btn-add" onclick="openFeedModal('${houseKey}', ${idx}, 'ADD')">+ Feed</button>
+              <button class="btn-mini btn-sub" onclick="openFeedModal('${houseKey}', ${idx}, 'SUB')">- Feed</button>
+              <button class="btn-mini btn-empty" onclick="setEmpty('${houseKey}', ${idx})">EMPTY</button>
+            </div>
+          `;
+          pairContainer.appendChild(siloUnit);
+
+          setTimeout(function() {
+            setupCanvasEvents(houseKey, idx, canvasId);
+            drawSiloCanvas(houseKey, idx, canvasId);
+          }, 0);
+        });
+      });
+    }
+
+    function drawSiloCanvas(houseKey, idx, canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const silo = farmData[houseKey][idx];
+
+      const width = canvas.width, height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const profile = getSiloProfile(houseKey, idx);
+      const topY = 12, botY = 192, cx = 75;
+      const totalProfileHeight = profile.roofHeight + profile.cylinderSections * profile.cylinderSectionHeight + profile.hopperHeight;
+      const profileScale = (botY - topY) / totalProfileHeight;
+      const bodyTopY = topY + profile.roofHeight * profileScale;
+      const bodyBotY = bodyTopY + profile.cylinderSections * profile.cylinderSectionHeight * profileScale;
+      const halfWidth = 60 * profile.diameter / 3;
+      const leftX = cx - halfWidth, rightX = cx + halfWidth;
+
+      ctx.strokeStyle = '#000000'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      for (let section = 0; section <= profile.cylinderSections; section++) {
+        const seamY = bodyTopY + section * profile.cylinderSectionHeight * profileScale;
+        ctx.beginPath();
+        ctx.moveTo(leftX, seamY);
+        ctx.lineTo(rightX, seamY);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      if (!silo.isEmpty) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, topY); ctx.lineTo(rightX, bodyTopY); ctx.lineTo(rightX, bodyBotY);
+        ctx.lineTo(cx, botY); ctx.lineTo(leftX, bodyBotY); ctx.lineTo(leftX, bodyTopY);
+        ctx.closePath(); ctx.clip();
+
+        if (silo.points && silo.points.length > 0) {
+          ctx.beginPath();
+          ctx.moveTo(silo.points[0].x, silo.points[0].y);
+          for (let i = 1; i < silo.points.length; i++) ctx.lineTo(silo.points[i].x, silo.points[i].y);
+          ctx.lineTo(width, height); ctx.lineTo(0, height); ctx.closePath();
+
+          ctx.fillStyle = '#e5b842'; ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(silo.points[0].x, silo.points[0].y);
+          for (let i = 1; i < silo.points.length; i++) ctx.lineTo(silo.points[i].x, silo.points[i].y);
+          ctx.strokeStyle = '#8c6111'; ctx.lineWidth = 3; ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      ctx.strokeStyle = '#000000'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, topY); ctx.lineTo(rightX, bodyTopY); ctx.lineTo(rightX, bodyBotY);
+      ctx.lineTo(cx, botY); ctx.lineTo(leftX, bodyBotY); ctx.lineTo(leftX, bodyTopY);
+      ctx.closePath(); ctx.stroke();
+
+      updateReadouts(houseKey, idx);
+    }
+
+    function setupCanvasEvents(houseKey, idx, canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const silo = farmData[houseKey][idx];
+
+      function startDraw(e) {
+        silo.isEmpty = false;
+        silo.isDragging = true;
+        silo.points = [];
+        delete customRemarks[houseKey];
+        addPoint(e);
+      }
+
+      function moveDraw(e) {
+        if (!silo.isDragging) return;
+        addPoint(e);
+      }
+
+      function endDraw() {
+        if (silo.isDragging) {
+          silo.isDragging = false;
+          smoothPoints(silo);
+          delete customRemarks[houseKey];
+          drawSiloCanvas(houseKey, idx, canvasId);
+          markAsUnsaved();
+        }
+      }
+
+      function addPoint(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = Math.max(10, Math.min(140, clientX - rect.left));
+        const y = Math.max(12, Math.min(192, clientY - rect.top));
+        silo.points.push({ x: x, y: y });
+        drawSiloCanvas(houseKey, idx, canvasId);
+      }
+
+      canvas.onmousedown = startDraw;
+      canvas.onmousemove = moveDraw;
+      window.addEventListener('mouseup', endDraw);
+      canvas.ontouchstart = startDraw;
+      canvas.ontouchmove = moveDraw;
+      canvas.ontouchend = endDraw;
+    }
+
+    function smoothPoints(silo) {
+      if (!silo.points || silo.points.length < 2) return;
+      silo.points.sort((a, b) => a.x - b.x);
+      if (silo.points[0].x > 10) silo.points.unshift({ x: 10, y: silo.points[0].y });
+      if (silo.points[silo.points.length - 1].x < 140) {
+        silo.points.push({ x: 140, y: silo.points[silo.points.length - 1].y });
+      }
+    }
+
+    function openFeedModal(houseKey, idx, action) {
+      targetAddSilo = { houseKey, idx };
+      feedActionType = action;
+      const silo = farmData[houseKey][idx];
+      const actionText = action === 'ADD' ? 'Add Feed to' : 'Deduct Feed from';
+      
+      document.getElementById('addKgTitle').innerText = `${actionText} ${houseKey} - ${silo.name}`;
+      document.getElementById('addKgSubtitle').innerText = `Current Level: ${silo.currentKg ? silo.currentKg.toLocaleString() : 0} kg / ${silo.maxCap.toLocaleString()} kg`;
+      document.getElementById('inputAddKg').value = '';
+      document.getElementById('btnConfirmFeedAction').innerText = action === 'ADD' ? 'Add Feed' : 'Deduct Feed';
+      document.getElementById('addKgModalOverlay').style.display = 'flex';
+    }
+
+    function closeAddKgModal() {
+      document.getElementById('addKgModalOverlay').style.display = 'none';
+      targetAddSilo = null;
+    }
+
+    function confirmFeedAction() {
+      if (!targetAddSilo) return;
+      const val = parseFloat(document.getElementById('inputAddKg').value) || 0;
+      if (val <= 0) return alert('Please enter a valid amount.');
+
+      const { houseKey, idx } = targetAddSilo;
+      const silo = farmData[houseKey][idx];
+      
+      let newKg = silo.currentKg || 0;
+      if (feedActionType === 'ADD') {
+        newKg += val;
+      } else {
+        newKg -= val;
+      }
+
+      if (newKg > silo.maxCap) newKg = silo.maxCap;
+      if (newKg <= 0) {
+        setEmpty(houseKey, idx);
+        closeAddKgModal();
+        return;
+      }
+
+      setSiloKgDirectly(houseKey, idx, newKg);
+      drawSiloCanvas(houseKey, idx, `canvas_${houseKey}_${idx}`);
+      closeAddKgModal();
+      markAsUnsaved();
+    }
+
+    function setEmpty(houseKey, idx) {
+      const silo = farmData[houseKey][idx];
+      silo.isEmpty = true;
+      silo.points = [{ x: 10, y: 192 }, { x: 140, y: 192 }];
+      delete customRemarks[houseKey];
+      drawSiloCanvas(houseKey, idx, `canvas_${houseKey}_${idx}`);
+      markAsUnsaved();
+    }
+
+    function updateReadouts(houseKey, idx) {
+      const silo = farmData[houseKey][idx];
+      const readoutEl = document.getElementById(`readout_${houseKey}_${idx}`);
+      const badgeEl = document.getElementById(`badge_${houseKey}_${idx}`);
+
+      let kg = 0, pctDisplay = 0, statusText = 'SAFE', badgeClass = 'status-safe';
+
+      if (silo.isEmpty) {
+        kg = 0; pctDisplay = 0; statusText = 'EMPTY'; badgeClass = 'status-empty';
+      } else if (silo.points && silo.points.length > 0) {
+        let sumY = 0;
+        silo.points.forEach(p => sumY += p.y);
+        let pct = siloPercentAtY(houseKey, idx, sumY / silo.points.length) / 100;
+
+        kg = Math.round(pct * silo.maxCap);
+        pctDisplay = Math.round(pct * 100);
+
+        if (pctDisplay === 0) { statusText = 'EMPTY'; badgeClass = 'status-empty'; silo.isEmpty = true; }
+        else if (pctDisplay <= 35) { statusText = 'CRITICAL'; badgeClass = 'status-critical'; }
+        else if (pctDisplay <= 75) { statusText = 'MODERATE'; badgeClass = 'status-moderate'; }
+        else { statusText = 'SAFE'; badgeClass = 'status-safe'; }
+      }
+
+      silo.currentKg = kg; silo.currentPct = pctDisplay; silo.status = statusText;
+
+      if (readoutEl) readoutEl.innerText = `${kg.toLocaleString()} kg (${pctDisplay}%)`;
+      if (badgeEl) { badgeEl.className = `status-badge ${badgeClass}`; badgeEl.innerText = statusText; }
+    }
+
+    function clearVisibleSilos() {
+      let targetHouses = activeFilter === '1-12' ? allHouseNumbers.filter(n => n <= 12) : activeFilter === '13-19' ? allHouseNumbers.filter(n => n >= 13) : allHouseNumbers;
+      targetHouses.forEach(function(num) {
+        const houseKey = `FH${num}`;
+        delete customRemarks[houseKey];
+        farmData[houseKey].forEach(function(s) {
+          s.isEmpty = true; s.points = [{ x: 10, y: 192 }, { x: 140, y: 192 }];
+        });
+      });
+      renderHouses();
+      markAsUnsaved();
+    }
+
+    function formatForecastDate(date) {
+      return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short' }).format(date);
+    }
+
+    function forecastDateForOffset(startDate, offset) {
+      const date = new Date(`${startDate}T00:00:00`);
+      date.setDate(date.getDate() + offset);
+      return date;
+    }
+
+    function getDefaultForecastStartDate() {
+      const today = new Date();
+      const day = today.getDay();
+      const daysUntilMonday = (8 - day) % 7;
+      today.setDate(today.getDate() + daysUntilMonday);
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    }
+
+    function updateForecastWeekLabel(startDate) {
+      if (!startDate) {
+        document.getElementById('forecastWeekLabel').innerText = '';
+        return;
+      }
+      const start = new Date(`${startDate}T00:00:00`);
+      const end = forecastDateForOffset(startDate, 6);
+      const startText = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(start);
+      const endText = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(end);
+      document.getElementById('forecastWeekLabel').innerText = `${startText} - ${endText}`;
+    }
+
+    function createDefaultForecastRows() {
+      return Array.from({ length: forecastRowCount }, (_, index) => ({
+        feedType: forecastFeedTypes[index] || '',
+        unit: 'trucks',
+        quantities: Array(7).fill(0)
+      }));
+    }
+
+    function renderForecastTable() {
+      const startDate = document.getElementById('forecastStartDate').value;
+      updateForecastWeekLabel(startDate);
+      if (!startDate) return;
+
+      const days = Array.from({ length: 7 }, (_, index) => forecastDateForOffset(startDate, index));
+      const weekdayHeadings = days.map((date) => {
+        const weekday = new Intl.DateTimeFormat('en', { weekday: 'short' }).format(date).toUpperCase();
+        return `<th>${weekday}<span class="forecast-date">${formatForecastDate(date)}</span></th>`;
+      }).join('');
+
+      const feedRows = forecastRows.map((row, rowIndex) => {
+        const feedOptions = [`<option value="">Select feed</option>`].concat(
+          forecastFeedTypes.map((feed) => `<option value="${feed}"${row.feedType === feed ? ' selected' : ''}>${feed}</option>`)
+        ).join('');
+        const unitOptions = forecastUnits.map((unit) =>
+          `<option value="${unit}"${row.unit === unit ? ' selected' : ''}>${unit === 'trucks' ? 'Trucks' : 'Bags'}</option>`
+        ).join('');
+        const inputs = days.map((date, dayIndex) => {
+          const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          const value = Number(row.quantities[dayIndex]) || 0;
+          return `<td><input type="number" min="0" step="1" value="${value}" aria-label="Row ${rowIndex + 1} ${formatForecastDate(date)} quantity" data-forecast-row="${rowIndex}" data-forecast-day="${dayIndex}" oninput="updateForecastValue(this)"${forecastIsLoading ? ' disabled' : ''}></td>`;
+        }).join('');
+        return `<tr>
+          <td><select aria-label="Feed type for row ${rowIndex + 1}" onchange="updateForecastRowSelection(${rowIndex}, 'feedType', this.value)"${forecastIsLoading ? ' disabled' : ''}>${feedOptions}</select></td>
+          <td><select aria-label="Unit for row ${rowIndex + 1}" onchange="updateForecastRowSelection(${rowIndex}, 'unit', this.value)"${forecastIsLoading ? ' disabled' : ''}>${unitOptions}</select></td>
+          ${inputs}
+          <td class="forecast-total" id="forecastTotal_${rowIndex}">0</td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('forecastTable').innerHTML = `
+        <thead>
+          <tr><th rowspan="2" scope="col">Feed Type</th><th rowspan="2" scope="col">Unit</th><th colspan="7">EXPECTED DATE OF DELIVERY</th><th class="forecast-total" rowspan="2" scope="col">Total</th></tr>
+          <tr>${weekdayHeadings}</tr>
+        </thead>
+        <tbody>${feedRows}</tbody>
+        <tfoot>
+          <tr><th colspan="9" scope="row">TOTAL TRUCKS</th><td class="forecast-total" id="forecastTotal_trucks">0</td></tr>
+          <tr><th colspan="9" scope="row">TOTAL BAGS</th><td class="forecast-total" id="forecastTotal_bags">0</td></tr>
+        </tfoot>`;
+      updateForecastTotals();
+    }
+
+    function updateForecastTotals() {
+      let truckTotal = 0;
+      let bagTotal = 0;
+      forecastRows.forEach((row, rowIndex) => {
+        const rowTotal = row.quantities.reduce((sum, quantity) => sum + (Number(quantity) || 0), 0);
+        const totalEl = document.getElementById(`forecastTotal_${rowIndex}`);
+        if (totalEl) totalEl.innerText = rowTotal.toLocaleString();
+        if (row.unit === 'trucks') truckTotal += rowTotal;
+        else if (row.unit === 'bags') bagTotal += rowTotal;
+      });
+      const trucksEl = document.getElementById('forecastTotal_trucks');
+      const bagsEl = document.getElementById('forecastTotal_bags');
+      if (trucksEl) trucksEl.innerText = truckTotal.toLocaleString();
+      if (bagsEl) bagsEl.innerText = bagTotal.toLocaleString();
+    }
+
+    function updateForecastRowSelection(rowIndex, field, value) {
+      if (forecastIsLoading || !forecastRows[rowIndex]) return;
+      if (field === 'feedType' && (value === '' || forecastFeedTypes.includes(value))) {
+        forecastRows[rowIndex].feedType = value;
+      } else if (field === 'unit' && forecastUnits.includes(value)) {
+        forecastRows[rowIndex].unit = value;
+      } else {
+        return;
+      }
+      isForecastDirty = true;
+      document.getElementById('forecastSaveStatus').innerText = 'Unsaved forecast changes.';
+      updateForecastTotals();
+    }
+
+    function updateForecastValue(input) {
+      if (forecastIsLoading) return;
+      const rowIndex = Number(input.dataset.forecastRow);
+      const dayIndex = Number(input.dataset.forecastDay);
+      if (!forecastRows[rowIndex] || dayIndex < 0 || dayIndex > 6) return;
+      const quantity = Number(input.value);
+      if (!Number.isSafeInteger(quantity) || quantity < 0) {
+        input.setCustomValidity('Enter a whole number of zero or more.');
+        input.reportValidity();
+        return;
+      }
+      input.setCustomValidity('');
+      forecastRows[rowIndex].quantities[dayIndex] = quantity;
+      isForecastDirty = true;
+      document.getElementById('forecastSaveStatus').innerText = 'Unsaved forecast changes.';
+      updateForecastTotals();
+    }
+
+    async function openForecast() {
+      const modal = document.getElementById('forecastModal');
+      modal.style.display = 'flex';
+      const startInput = document.getElementById('forecastStartDate');
+      if (!startInput.value) startInput.value = getDefaultForecastStartDate();
+      document.getElementById('forecastLoadedWeek').value = startInput.value;
+      await loadForecast(startInput.value);
+    }
+
+    async function loadForecast(weekStart) {
+      if (!weekStart) return;
+      const requestId = ++forecastLoadRequestId;
+      forecastIsLoading = true;
+      forecastRows = createDefaultForecastRows();
+      document.getElementById('forecastNotes').value = '';
+      document.getElementById('forecastSaveStatus').innerText = 'Loading forecast...';
+      renderForecastTable();
+      try {
+        const response = await fetch(`/api/forecast?weekStart=${encodeURIComponent(weekStart)}`);
+        const state = await response.json();
+        if (requestId !== forecastLoadRequestId) return;
+        if (!response.ok || state.error) {
+          throw new Error(state.error || 'Unable to load forecast.');
+        }
+        if (Array.isArray(state.rows) && state.rows.length > 0) {
+          forecastRows = createDefaultForecastRows();
+          state.rows.slice(0, forecastRowCount).forEach((row, rowIndex) => {
+            forecastRows[rowIndex] = {
+              feedType: forecastFeedTypes.includes(row.feedType) ? row.feedType : '',
+              unit: forecastUnits.includes(row.unit) ? row.unit : 'trucks',
+              quantities: Array.from({ length: 7 }, (_, dayIndex) => {
+                const quantity = Number(row.quantities && row.quantities[dayIndex]);
+                return Number.isSafeInteger(quantity) && quantity >= 0 ? quantity : 0;
+              })
+            };
+          });
+        }
+        document.getElementById('forecastNotes').value = state.notes || '';
+        forecastIsLoading = false;
+        renderForecastTable();
+        isForecastDirty = false;
+        document.getElementById('forecastSaveStatus').innerText = state.savedAt
+          ? `Last saved ${new Date(state.savedAt).toLocaleString()}.`
+          : 'No saved forecast for this week yet.';
+      } catch (error) {
+        if (requestId !== forecastLoadRequestId) return;
+        forecastIsLoading = false;
+        renderForecastTable();
+        document.getElementById('forecastSaveStatus').innerText = `Could not load forecast: ${error.message}`;
+      }
+    }
+
+    async function changeForecastWeek(weekStart) {
+      if (!weekStart) return;
+      if (isForecastDirty && !window.confirm('Discard unsaved forecast changes and load another week?')) {
+        document.getElementById('forecastStartDate').value = document.getElementById('forecastLoadedWeek').value;
+        return;
+      }
+      document.getElementById('forecastLoadedWeek').value = weekStart;
+      await loadForecast(weekStart);
+    }
+
+    async function saveForecast() {
+      if (forecastIsLoading) return;
+      const weekStart = document.getElementById('forecastStartDate').value;
+      const rows = forecastRows.map((row) => ({
+        feedType: row.feedType,
+        unit: row.unit,
+        quantities: row.quantities.map((quantity) => Number(quantity) || 0)
+      }));
+      const hasQuantitiesWithoutType = rows.some((row) =>
+        !row.feedType && row.quantities.some((quantity) => quantity > 0)
+      );
+      const hasInvalidQuantity = rows.some((row) =>
+        row.quantities.some((quantity) => !Number.isSafeInteger(quantity) || quantity < 0 || quantity > 1000000)
+      );
+      if (hasQuantitiesWithoutType || hasInvalidQuantity) {
+        document.getElementById('forecastSaveStatus').innerText = hasQuantitiesWithoutType
+          ? 'Choose a feed type for every row with a quantity.'
+          : 'Enter whole-number quantities between 0 and 1,000,000.';
+        return;
+      }
+      const button = document.getElementById('forecastSaveButton');
+      button.disabled = true;
+      document.getElementById('forecastSaveStatus').innerText = 'Saving forecast...';
+
+      try {
+        const response = await fetch('/api/forecast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            weekStart,
+            rows,
+            notes: document.getElementById('forecastNotes').value
+          })
+        });
+        const result = await response.json();
+        if (!response.ok || result.error) {
+          throw new Error(result.error || 'Unable to save forecast.');
+        }
+        isForecastDirty = false;
+        document.getElementById('forecastLoadedWeek').value = weekStart;
+        document.getElementById('forecastSaveStatus').innerText = `Forecast saved ${new Date(result.savedAt).toLocaleString()}.`;
+      } catch (error) {
+        document.getElementById('forecastSaveStatus').innerText = `Could not save forecast: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function closeForecast() {
+      if (isForecastDirty && !window.confirm('This forecast has unsaved changes. Close without saving?')) {
+        return;
+      }
+      document.getElementById('forecastModal').style.display = 'none';
+      isForecastDirty = false;
+    }
+
+    async function exportForecastImage() {
+      const button = document.getElementById('forecastImageButton');
+      const status = document.getElementById('forecastSaveStatus');
+      if (typeof html2canvas !== 'function') {
+        status.innerText = 'Image export is unavailable. Check your internet connection and try again.';
+        return;
+      }
+
+      button.disabled = true;
+      status.innerText = 'Generating forecast image...';
+      try {
+        const report = document.getElementById('forecastReport');
+        const canvas = await html2canvas(report, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          width: 1120,
+          windowWidth: 1200,
+          onclone: function(clonedDocument) {
+            const clonedReport = clonedDocument.getElementById('forecastReport');
+            clonedReport.style.width = '1120px';
+            clonedReport.style.maxWidth = 'none';
+            clonedReport.style.overflow = 'visible';
+            const tableWrap = clonedReport.querySelector('.forecast-table-wrap');
+            tableWrap.style.overflow = 'visible';
+            const table = clonedReport.querySelector('.forecast-table');
+            table.style.width = '100%';
+            table.style.minWidth = '0';
+
+            clonedReport.querySelectorAll('input, select, textarea').forEach(function(control) {
+              const value = control.tagName === 'SELECT'
+                ? control.options[control.selectedIndex].text
+                : control.value;
+              const output = clonedDocument.createElement('span');
+              output.className = 'forecast-capture-value';
+              output.textContent = value || (control.type === 'number' ? '0' : '');
+              output.style.display = control.tagName === 'TEXTAREA' ? 'block' : 'inline-block';
+              output.style.width = control.tagName === 'TEXTAREA' ? '100%' : `${control.offsetWidth}px`;
+              output.style.minHeight = control.tagName === 'TEXTAREA' ? '75px' : `${control.offsetHeight}px`;
+              output.style.padding = '5px';
+              output.style.border = '1px solid #555';
+              output.style.borderRadius = '3px';
+              output.style.background = '#fff';
+              output.style.color = '#000';
+              output.style.font = 'inherit';
+              output.style.fontWeight = '800';
+              output.style.textAlign = control.tagName === 'TEXTAREA' ? 'left' : 'center';
+              output.style.whiteSpace = control.tagName === 'TEXTAREA' ? 'pre-wrap' : 'nowrap';
+              control.replaceWith(output);
+            });
+          }
+        });
+
+        const weekStart = document.getElementById('forecastStartDate').value || 'forecast';
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `Feed_Delivery_Forecast_${weekStart}.png`;
+        downloadLink.href = canvas.toDataURL('image/png');
+        downloadLink.click();
+        status.innerText = 'Forecast image downloaded.';
+      } catch (error) {
+        console.error('Failed to generate forecast image:', error);
+        status.innerText = `Could not generate the forecast image: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function printForecast() {
+      window.print();
+    }
+
+    window.addEventListener('beforeprint', () => document.body.classList.add('forecast-printing'));
+    window.addEventListener('afterprint', () => document.body.classList.remove('forecast-printing'));
+    document.getElementById('forecastNotes').addEventListener('input', function() {
+      if (forecastIsLoading) return;
+      isForecastDirty = true;
+      document.getElementById('forecastSaveStatus').innerText = 'Unsaved forecast changes.';
+    });
+
+    function showSummaryTable() {
+      document.getElementById('modalRecordDate').value = document.getElementById('recordDate').value;
+      document.getElementById('modalRecordTime').value = document.getElementById('recordTime').value;
+
+      const tbodyLeft = document.getElementById('summaryTableBodyLeft');
+      const tbodyRight = document.getElementById('summaryTableBodyRight');
+      tbodyLeft.innerHTML = ''; tbodyRight.innerHTML = '';
+
+      allHouseNumbers.forEach(function(num, index) {
+        const houseKey = `FH${num}`;
+        const s1 = farmData[houseKey][0], s2 = farmData[houseKey][1];
+        const computedAge = computeFlockAge(houseKey);
+
+        const s1Kg = (!s1.isEmpty && s1.currentKg > 0) ? s1.currentKg : 0;
+        const s2Kg = (!s2.isEmpty && s2.currentKg > 0) ? s2.currentKg : 0;
+        const total = s1Kg + s2Kg;
+
+        const divisor = (num >= 13) ? 312 : 270;
+        const hrsToConsumeVal = total > 0 ? (total / divisor) : 0;
+        const hrsToConsume = hrsToConsumeVal.toFixed(1);
+
+        let autoRemark = 'SAFE';
+        if (total === 0 || hrsToConsumeVal <= 0) {
+          autoRemark = 'EMPTY';
+        } else if (hrsToConsumeVal <= 6) {
+          autoRemark = 'CLOSE TO EMPTY';
+        } else if (hrsToConsumeVal <= 12) {
+          autoRemark = 'CRITICAL';
+        } else if (hrsToConsumeVal <= 23) {
+          autoRemark = 'MODERATE';
+        } else {
+          autoRemark = 'SAFE';
+        }
+
+        let currentRemark = customRemarks[houseKey] || autoRemark;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${houseKey}</td>
+          <td>
+            <span id="age_${houseKey}" style="font-weight:900;">${computedAge}</span>
+          </td>
+          <td class="silo-val" style="${s1Kg === 0 ? 'color: #dc2626;' : ''}">${s1Kg > 0 ? `${s1Kg.toFixed(2)} (${s1.currentPct}%)` : 'EMPTY (0%)'}</td>
+          <td class="silo-val" style="${s2Kg === 0 ? 'color: #dc2626;' : ''}">${s2Kg > 0 ? `${s2Kg.toFixed(2)} (${s2.currentPct}%)` : 'EMPTY (0%)'}</td>
+          <td style="font-weight: 800; text-align: center;">${total}</td>
+          <td style="font-weight: 900; color: #0284c7; text-align: center;">${hrsToConsume} hrs</td>
+          <td style="padding: 2px;">
+            <select class="remarks-select rem-${currentRemark.toLowerCase().replace(/\s+/g, '')}" id="remark_${houseKey}" onchange="updateRemarkStyle(this, '${houseKey}')">
+              <option value="CLOSE TO EMPTY" ${currentRemark === 'CLOSE TO EMPTY' ? 'selected' : ''}>CLOSE TO EMPTY</option>
+              <option value="CRITICAL" ${currentRemark === 'CRITICAL' ? 'selected' : ''}>CRITICAL</option>
+              <option value="MODERATE" ${currentRemark === 'MODERATE' ? 'selected' : ''}>MODERATE</option>
+              <option value="SAFE" ${currentRemark === 'SAFE' ? 'selected' : ''}>SAFE</option>
+              <option value="EMPTY" ${currentRemark === 'EMPTY' ? 'selected' : ''}>EMPTY</option>
+            </select>
+            <div class="export-badge rem-${currentRemark.toLowerCase().replace(/\s+/g, '')}" id="exp_remark_${houseKey}" style="display:none;">${currentRemark}</div>
+          </td>
+        `;
+
+        if (index < 9) tbodyLeft.appendChild(tr);
+        else tbodyRight.appendChild(tr);
+      });
+
+      calculateStatusTotals();
+      document.getElementById('modalOverlay').style.display = 'flex';
+    }
+
+    function updateRemarkStyle(selectEl, houseKey) {
+      selectEl.className = `remarks-select rem-${selectEl.value.toLowerCase().replace(/\s+/g, '')}`;
+      if (houseKey) customRemarks[houseKey] = selectEl.value;
+      calculateStatusTotals();
+      markAsUnsaved();
+    }
+
+    function calculateStatusTotals() {
+      let safe = 0, moderate = 0, critical = 0, closeToEmpty = 0, empty = 0;
+      allHouseNumbers.forEach(function(num) {
+        const selectEl = document.getElementById(`remark_FH${num}`);
+        if (selectEl) {
+          const val = selectEl.value;
+          if (val === 'SAFE') safe++;
+          else if (val === 'MODERATE') moderate++;
+          else if (val === 'CRITICAL') critical++;
+          else if (val === 'CLOSE TO EMPTY') closeToEmpty++;
+          else if (val === 'EMPTY') empty++;
+        }
+      });
+      document.getElementById('countSafe').innerText = safe;
+      document.getElementById('countModerate').innerText = moderate;
+      document.getElementById('countCritical').innerText = critical;
+      document.getElementById('countCloseToEmpty').innerText = closeToEmpty;
+      document.getElementById('countEmpty').innerText = empty;
+    }
+
+    function exportSummaryAsImage() {
+      const captureArea = document.getElementById('reportCaptureArea');
+      document.getElementById('exportDateText').innerText = document.getElementById('modalRecordDate').value;
+      document.getElementById('exportTimeText').innerText = document.getElementById('modalRecordTime').value;
+      document.getElementById('modalRecordDate').style.display = 'none';
+      document.getElementById('modalRecordTime').style.display = 'none';
+      document.getElementById('exportDateText').style.display = 'inline';
+      document.getElementById('exportTimeText').style.display = 'inline';
+
+      allHouseNumbers.forEach(function(num) {
+        const houseKey = `FH${num}`;
+        const remSel = document.getElementById(`remark_${houseKey}`), expRem = document.getElementById(`exp_remark_${houseKey}`);
+        if (remSel && expRem) { expRem.innerText = remSel.value; expRem.className = `export-badge rem-${remSel.value.toLowerCase().replace(/\s+/g, '')}`; remSel.style.display = 'none'; expRem.style.display = 'inline-block'; }
+      });
+
+      html2canvas(captureArea, { scale: 2.5, backgroundColor: '#ffffff' }).then(function(canvas) {
+        document.getElementById('modalRecordDate').style.display = 'inline-block';
+        document.getElementById('modalRecordTime').style.display = 'inline-block';
+        document.getElementById('exportDateText').style.display = 'none';
+        document.getElementById('exportTimeText').style.display = 'none';
+
+        allHouseNumbers.forEach(function(num) {
+          const houseKey = `FH${num}`;
+          const remSel = document.getElementById(`remark_${houseKey}`), expRem = document.getElementById(`exp_remark_${houseKey}`);
+          if (remSel && expRem) { remSel.style.display = 'inline-block'; expRem.style.display = 'none'; }
+        });
+
+        const link = document.createElement('a');
+        link.download = `House_Summary_Report_${document.getElementById('modalRecordDate').value}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+    window.onload = initData;
+  </script>
+</body>
+</html>
