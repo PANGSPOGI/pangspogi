@@ -506,6 +506,81 @@
       .btn-group-opt { font-size: 8px; }
       .global-actions .btn-lg { padding-right: 6px; padding-left: 6px; font-size: 9px; }
     }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .primary-nav { display: flex; align-items: center; gap: 5px; }
+    .primary-nav button {
+      padding: 8px 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px;
+      background: transparent; color: #e7f2eb; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer;
+    }
+    .primary-nav button[aria-current="page"] { background: rgba(255,255,255,.16); color: #fff; }
+    #mainContent[hidden], #settingsScreen[hidden] { display: none; }
+    .settings-screen { max-width: 1480px; margin: 0 auto; padding: 28px 24px 60px; }
+    .settings-intro { margin: 4px 0 22px; }
+    .settings-intro h1 { color: var(--ink); font-size: clamp(25px, 3vw, 34px); font-weight: 850; }
+    .settings-intro p { margin-top: 8px; color: var(--muted); font-size: 14px; }
+    .settings-card {
+      margin-bottom: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 15px;
+      background: var(--surface); box-shadow: var(--shadow);
+    }
+    .settings-card h2 { margin-bottom: 5px; color: var(--ink); font-size: 18px; }
+    .settings-card > p { margin-bottom: 16px; color: var(--muted); font-size: 12px; }
+    .settings-form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; }
+    .settings-cylinder-measurements { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .settings-cylinder-card { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fbfdfb; }
+    .settings-cylinder-card h3 { margin-bottom: 10px; color: var(--ink); font-size: 12px; }
+    .settings-cylinder-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .settings-cylinder-fields .settings-field label { font-size: 10px; }
+    .settings-field { min-width: 0; }
+    .settings-field label { display: block; margin-bottom: 5px; color: var(--ink); font-size: 11px; font-weight: 800; }
+    .settings-field input, .settings-field select {
+      width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid #cad8ce;
+      border-radius: 8px; background: #fff; color: var(--ink); font: inherit; font-size: 13px;
+    }
+    .settings-field input:focus, .settings-field select:focus { outline: 2px solid #72b58c; outline-offset: 1px; }
+    .settings-unit-label { display: inline-block; margin-left: 4px; color: var(--muted); font-weight: 700; }
+    .settings-field-error { display: block; min-height: 15px; margin-top: 3px; color: #ae3932; font-size: 10px; }
+    .settings-form-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .settings-table-wrap { width: 100%; overflow-x: auto; }
+    .settings-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .settings-table th, .settings-table td { padding: 10px 9px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+    .settings-table th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .45px; }
+    .settings-table td { color: var(--ink); }
+    .settings-table .settings-actions-cell { text-align: right; }
+    .settings-table button {
+      padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
+      background: #fff; color: var(--green-dark); font: inherit; font-size: 11px; font-weight: 750; cursor: pointer;
+    }
+    .settings-table button + button { margin-left: 5px; color: #ae3932; }
+    body[data-theme="dark"] .settings-table button { background: #252f29; color: #d5ecdd; }
+    body[data-theme="dark"] .settings-table button + button { color: #f0aaa3; }
+    .settings-empty { padding: 16px 8px; color: var(--muted) !important; text-align: center !important; }
+    .settings-unit-row { display: flex; align-items: end; gap: 10px; max-width: 480px; }
+    .settings-unit-row .settings-field { flex: 1; }
+    .settings-volume-hint { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .settings-toast {
+      position: fixed; z-index: 120; top: 84px; right: 20px; max-width: min(420px, calc(100vw - 32px));
+      padding: 12px 16px; border: 1px solid #a9d8b8; border-radius: 10px; background: #eaf7ed;
+      color: #155d36; font-size: 12px; font-weight: 750; box-shadow: 0 8px 28px rgba(0,0,0,.14);
+    }
+    .settings-toast.error { border-color: #efc3bf; background: #fff0ee; color: #9e3029; }
+    .settings-toast[hidden] { display: none; }
+    @media (max-width: 900px) { .settings-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 700px) {
+      .header { flex-wrap: wrap; gap: 10px; }
+      .header-actions { width: 100%; justify-content: space-between; }
+      .primary-nav { flex: 1; }
+      .settings-screen { padding: 20px 14px 40px; }
+      .settings-card { padding: 16px 12px; }
+      .settings-table { min-width: 760px; }
+      .settings-unit-row { align-items: stretch; }
+      .settings-cylinder-measurements { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .settings-form-grid { grid-template-columns: 1fr; }
+      .settings-unit-row { flex-direction: column; }
+      .settings-unit-row .btn-lg { width: 100%; }
+      .primary-nav button { flex: 1; padding: 7px 8px; }
+    }
   </style>
 </head>
 <body>
@@ -516,12 +591,16 @@
       <span class="sync-indicator" id="syncStatus">SAVED</span>
     </div>
     <div class="header-actions">
+      <nav class="primary-nav" aria-label="Main navigation">
+        <button id="dashboardNav" type="button" aria-current="page" onclick="showPage('dashboard')">Dashboard</button>
+        <button id="settingsNav" type="button" onclick="showPage('settings')">Settings</button>
+      </nav>
       <button class="theme-btn" id="themeToggle" type="button" onclick="toggleTheme()" aria-pressed="false">Dark mode</button>
       <button class="close-btn" onclick="confirmExit()">Close</button>
     </div>
   </div>
 
-  <div class="main-content">
+  <div class="main-content" id="mainContent">
     <div class="dashboard-intro">
       <div>
         <div class="dashboard-eyebrow">Farm operations</div>
@@ -596,6 +675,132 @@
     </div>
   </div>
 
+  <main class="settings-screen" id="settingsScreen" hidden>
+    <div class="settings-intro">
+      <div class="dashboard-eyebrow">Farm configuration</div>
+      <h1>Settings</h1>
+      <p>Manage your house and silo register, dimensions, and preferred length unit.</p>
+    </div>
+
+    <section class="settings-card" aria-labelledby="defaultUnitHeading">
+      <h2 id="defaultUnitHeading">Default length unit</h2>
+      <p>Used when creating a silo. Existing silo dimensions keep their own saved units.</p>
+      <div class="settings-unit-row">
+        <div class="settings-field">
+          <label for="settingsDefaultUnit">Default unit</label>
+          <select id="settingsDefaultUnit">
+            <option value="m">Meters (m)</option>
+            <option value="cm">Centimeters (cm)</option>
+            <option value="mm">Millimeters (mm)</option>
+            <option value="ft">Feet (ft)</option>
+            <option value="in">Inches (in)</option>
+          </select>
+        </div>
+        <button class="btn-lg btn-primary" type="button" onclick="saveDefaultLengthUnit()">Save default unit</button>
+      </div>
+    </section>
+
+    <section class="settings-card" aria-labelledby="housesSettingsHeading">
+      <h2 id="housesSettingsHeading">Houses</h2>
+      <p>Add, rename, and remove houses. Removing a house also removes its assigned silo records.</p>
+      <form id="houseSettingsForm" onsubmit="saveHouse(event)" novalidate>
+        <div class="settings-form-grid">
+          <div class="settings-field">
+            <label for="houseSettingsId">House name or ID</label>
+            <input id="houseSettingsId" maxlength="100" autocomplete="off">
+            <span class="settings-field-error" id="houseSettingsIdError"></span>
+          </div>
+        </div>
+        <div class="settings-form-actions">
+          <button class="btn-lg btn-primary" id="houseSettingsSubmit" type="submit">Add house</button>
+          <button class="btn-lg btn-clear" id="houseSettingsCancel" type="button" onclick="cancelHouseEdit()" hidden>Cancel edit</button>
+        </div>
+      </form>
+      <div class="settings-table-wrap">
+        <table class="settings-table">
+          <thead><tr><th scope="col">House</th><th scope="col">Assigned silo count</th><th scope="col" class="settings-actions-cell">Actions</th></tr></thead>
+          <tbody id="settingsHouseRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="settings-card" aria-labelledby="silosSettingsHeading">
+      <h2 id="silosSettingsHeading">Silos</h2>
+      <p>All dimensions are stored in meters and volume in cubic meters. Display units can be changed without changing stored values.</p>
+      <form id="siloSettingsForm" onsubmit="saveSilo(event)" novalidate>
+        <div class="settings-form-grid">
+          <div class="settings-field">
+            <label for="siloSettingsId">Silo name or ID</label>
+            <input id="siloSettingsId" maxlength="100" autocomplete="off">
+            <span class="settings-field-error" id="siloSettingsIdError"></span>
+          </div>
+          <div class="settings-field">
+            <label for="siloSettingsHouse">Assigned house</label>
+            <select id="siloSettingsHouse"></select>
+            <span class="settings-field-error" id="siloSettingsHouseError"></span>
+          </div>
+          <div class="settings-field">
+            <label for="siloSettingsCylinderCount">Number of cylinders</label>
+            <select id="siloSettingsCylinderCount" onchange="changeSiloCylinderCount()">
+              <option value="">Select count</option>
+              <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+              <option value="9">9</option><option value="10">10</option>
+            </select>
+            <span class="settings-field-error" id="siloSettingsCylinderCountError"></span>
+          </div>
+          <div class="settings-field">
+            <label for="siloSettingsLengthUnit">Length unit</label>
+            <select id="siloSettingsLengthUnit" onchange="changeSiloLengthUnit()">
+              <option value="m">Meters (m)</option><option value="cm">Centimeters (cm)</option>
+              <option value="mm">Millimeters (mm)</option><option value="ft">Feet (ft)</option>
+              <option value="in">Inches (in)</option>
+            </select>
+            <span class="settings-field-error"></span>
+          </div>
+          <div class="settings-cylinder-measurements" id="siloCylinderMeasurements" aria-live="polite"></div>
+          <div class="settings-field">
+            <label for="siloSettingsConeHeight">Cone height <span id="coneHeightUnit" class="settings-unit-label">(m)</span></label>
+            <input id="siloSettingsConeHeight" type="number" min="0" step="any" inputmode="decimal" oninput="calculateSiloFormVolume()">
+            <span class="settings-field-error" id="siloSettingsConeHeightError"></span>
+          </div>
+          <div class="settings-field">
+            <label for="siloSettingsVolume">Total volume <span id="volumeUnit" class="settings-unit-label">(m³)</span></label>
+            <input id="siloSettingsVolume" type="number" min="0" step="any" inputmode="decimal">
+            <span class="settings-field-error" id="siloSettingsVolumeError"></span>
+          </div>
+          <div class="settings-field">
+            <label for="siloSettingsVolumeUnit">Volume unit</label>
+            <select id="siloSettingsVolumeUnit" onchange="changeSiloVolumeUnit()">
+              <option value="m3">Cubic meters (m³)</option>
+              <option value="L">Liters (L)</option>
+              <option value="ft3">Cubic feet (ft³)</option>
+            </select>
+            <span class="settings-field-error"></span>
+            <div class="settings-volume-hint" id="siloVolumeHint">Calculated from each cylinder and the cone (using Cylinder 1's diameter); you can edit this value.</div>
+          </div>
+        </div>
+        <div class="settings-form-actions">
+          <button class="btn-lg btn-primary" id="siloSettingsSubmit" type="submit">Add silo</button>
+          <button class="btn-lg btn-clear" id="siloSettingsCancel" type="button" onclick="cancelSiloEdit()" hidden>Cancel edit</button>
+        </div>
+      </form>
+      <div class="settings-table-wrap">
+        <table class="settings-table">
+          <thead>
+            <tr>
+              <th scope="col">Silo</th><th scope="col">House</th><th scope="col">Cylinders</th>
+              <th scope="col">Cylinder measurements (length unit)</th><th scope="col">Cone height (length unit)</th>
+              <th scope="col">Total volume (volume unit)</th><th scope="col" class="settings-actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="settingsSiloRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="settings-toast" id="settingsToast" role="status" aria-live="polite" hidden></div>
   <div id="siloPrintPages" aria-hidden="true"></div>
 
   <div class="modal-overlay" id="siloPrintPreviewModal" onclick="if(event.target===this) closeSiloPrintPreview()">
@@ -822,6 +1027,18 @@
     let isForecastDirty = false;
     let forecastIsLoading = false;
     let forecastLoadRequestId = 0;
+    const lengthUnitToMeters = { m: 1, cm: 0.01, mm: 0.001, ft: 0.3048, in: 0.0254 };
+    const volumeUnitToCubicMeters = { m3: 1, L: 0.001, ft3: 0.028316846592 };
+    const lengthUnitLabels = { m: 'm', cm: 'cm', mm: 'mm', ft: 'ft', in: 'in' };
+    const volumeUnitLabels = { m3: 'm³', L: 'L', ft3: 'ft³' };
+    let settingsData = null;
+    let siloFormInitialized = false;
+    let editingHouseId = '';
+    let editingSiloId = '';
+    let settingsIsSaving = false;
+    let settingsToastTimer = null;
+    let siloFormLengthUnit = 'm';
+    let siloFormVolumeUnit = 'm3';
 
     let isDirty = false;
     let pendingExitAction = false;
@@ -833,6 +1050,612 @@
         return e.returnValue;
       }
     });
+
+    function showPage(page) {
+      const settingsPage = page === 'settings';
+      document.getElementById('mainContent').hidden = settingsPage;
+      document.getElementById('settingsScreen').hidden = !settingsPage;
+      document.getElementById('dashboardNav').setAttribute('aria-current', settingsPage ? 'false' : 'page');
+      document.getElementById('settingsNav').setAttribute('aria-current', settingsPage ? 'page' : 'false');
+      if (!settingsPage) renderHouses();
+    }
+
+    function createDefaultSettings() {
+      const houses = allHouseNumbers.map(function(number) {
+        return { id: `FH${number}` };
+      });
+      const silos = [];
+      allHouseNumbers.forEach(function(number) {
+        const houseId = `FH${number}`;
+        [0, 1].forEach(function(index) {
+          const cylinderCount = number > 12 || index === 1 ? 3 : 4;
+          const diameterM = number > 12 ? 3 : 2.71;
+          const cylinderHeightM = 0.83;
+          const coneHeightM = number > 12 ? 2.45 : 1.93;
+          const cylinders = Array.from({ length: cylinderCount }, function() {
+            return { heightM: cylinderHeightM, diameterM: diameterM };
+          });
+          const volumeM3 = calculateSiloVolumeM3(cylinders, coneHeightM);
+          silos.push({
+            id: `${houseId}-Silo${index + 1}`,
+            houseId: houseId,
+            cylinderCount: cylinderCount,
+            cylinders: cylinders,
+            coneHeightM: coneHeightM,
+            lengthUnit: 'm',
+            volumeM3: volumeM3,
+            volumeUnit: 'm3'
+          });
+        });
+      });
+      return { defaultLengthUnit: 'm', houses: houses, silos: silos };
+    }
+
+    function normalizeSiloSettings(silo) {
+      if (Array.isArray(silo.cylinders)) {
+        return Object.assign({}, silo, { cylinders: silo.cylinders.map(function(cylinder) {
+          return {
+            heightM: Number(cylinder.heightM),
+            diameterM: Number(cylinder.diameterM)
+          };
+        }) });
+      }
+      const count = Number(silo.cylinderCount);
+      return Object.assign({}, silo, {
+        cylinders: Array.from({ length: count }, function() {
+          return {
+            heightM: Number(silo.cylinderHeightM),
+            diameterM: Number(silo.diameterM)
+          };
+        })
+      });
+    }
+
+    function normalizeSettings(settings) {
+      return Object.assign({}, settings, {
+        silos: settings.silos.map(normalizeSiloSettings)
+      });
+    }
+
+    async function loadSettings() {
+      try {
+        const response = await fetch('/api/settings');
+        const result = await response.json();
+        if (!response.ok || result.error) {
+          throw new Error(result.error || 'Unable to load settings.');
+        }
+        settingsData = result.settings
+          ? normalizeSettings(result.settings)
+          : createDefaultSettings();
+        renderSettings();
+      } catch (error) {
+        showSettingsToast(`Settings could not be loaded: ${error.message}`, true);
+        console.error('Error loading settings:', error);
+      }
+    }
+
+    function showSettingsToast(message, isError) {
+      const toast = document.getElementById('settingsToast');
+      if (!toast) return;
+      window.clearTimeout(settingsToastTimer);
+      toast.textContent = message;
+      toast.classList.toggle('error', Boolean(isError));
+      toast.hidden = false;
+      settingsToastTimer = window.setTimeout(function() {
+        toast.hidden = true;
+      }, 5000);
+    }
+
+    function escapeSettingsHtml(value) {
+      return String(value).replace(/[&<>"']/g, function(character) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[character];
+      });
+    }
+
+    function settingsInlineArgument(value) {
+      return escapeSettingsHtml(JSON.stringify(String(value)).replace(/</g, '\\u003c'));
+    }
+
+    function formatSettingsNumber(value) {
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: 4 });
+    }
+
+    function calculateSiloVolumeM3(cylinders, coneHeightM) {
+      const cylinderVolume = cylinders.reduce(function(total, cylinder) {
+        const radius = cylinder.diameterM / 2;
+        return total + Math.PI * radius * radius * cylinder.heightM;
+      }, 0);
+      const coneRadius = cylinders[0].diameterM / 2;
+      return cylinderVolume + Math.PI * coneRadius * coneRadius * coneHeightM / 3;
+    }
+
+    function readCylinderFormValues() {
+      return Array.from(document.querySelectorAll('[data-cylinder-height]')).map(function(input, index) {
+        const diameterInput = document.querySelector(`[data-cylinder-diameter="${index + 1}"]`);
+        return {
+          height: input.value,
+          diameter: diameterInput ? diameterInput.value : ''
+        };
+      });
+    }
+
+    function renderCylinderMeasurementInputs(values) {
+      const container = document.getElementById('siloCylinderMeasurements');
+      const count = Number(document.getElementById('siloSettingsCylinderCount').value);
+      if (!Number.isInteger(count) || count < 3 || count > 10) {
+        container.innerHTML = '';
+        return;
+      }
+      const unit = escapeSettingsHtml(lengthUnitLabels[siloFormLengthUnit]);
+      container.innerHTML = Array.from({ length: count }, function(_, index) {
+        const cylinder = values[index] || { height: '', diameter: '' };
+        const number = index + 1;
+        return `<section class="settings-cylinder-card" aria-labelledby="siloCylinderHeading${number}">
+          <h3 id="siloCylinderHeading${number}">Cylinder ${number}</h3>
+          <div class="settings-cylinder-fields">
+            <div class="settings-field">
+              <label for="siloCylinderHeight${number}">Height <span class="settings-unit-label">(${unit})</span></label>
+              <input id="siloCylinderHeight${number}" type="number" min="0" step="any" inputmode="decimal"
+                data-cylinder-height="${number}" value="${escapeSettingsHtml(cylinder.height)}" oninput="calculateSiloFormVolume()">
+              <span class="settings-field-error" id="siloCylinderHeight${number}Error"></span>
+            </div>
+            <div class="settings-field">
+              <label for="siloCylinderDiameter${number}">Diameter <span class="settings-unit-label">(${unit})</span></label>
+              <input id="siloCylinderDiameter${number}" type="number" min="0" step="any" inputmode="decimal"
+                data-cylinder-diameter="${number}" value="${escapeSettingsHtml(cylinder.diameter)}" oninput="calculateSiloFormVolume()">
+              <span class="settings-field-error" id="siloCylinderDiameter${number}Error"></span>
+            </div>
+          </div>
+        </section>`;
+      }).join('');
+    }
+
+    function renderSettings() {
+      if (!settingsData) return;
+      document.getElementById('settingsDefaultUnit').value = settingsData.defaultLengthUnit;
+      if (!siloFormInitialized && !editingSiloId) {
+        resetSiloForm();
+        siloFormInitialized = true;
+      }
+      const siloHouseSelect = document.getElementById('siloSettingsHouse');
+      const selectedHouseId = siloHouseSelect.value;
+      const houseOptions = settingsData.houses
+        .slice()
+        .sort(function(left, right) { return left.id.localeCompare(right.id); })
+        .map(function(house) {
+          return `<option value="${escapeSettingsHtml(house.id)}">${escapeSettingsHtml(house.id)}</option>`;
+        }).join('');
+      siloHouseSelect.innerHTML =
+        `<option value="">${settingsData.houses.length ? 'Select a house' : 'Add a house first'}</option>${houseOptions}`;
+      const retainedHouse = settingsData.houses.find(function(house) {
+        return house.id.toLocaleLowerCase() === selectedHouseId.toLocaleLowerCase();
+      });
+      if (retainedHouse) siloHouseSelect.value = retainedHouse.id;
+
+      const houseRows = settingsData.houses
+        .slice()
+        .sort(function(left, right) { return left.id.localeCompare(right.id); })
+        .map(function(house) {
+          const siloCount = settingsData.silos.filter(function(silo) {
+            return silo.houseId.toLocaleLowerCase() === house.id.toLocaleLowerCase();
+          }).length;
+          const id = escapeSettingsHtml(house.id);
+          const argument = settingsInlineArgument(house.id);
+          return `<tr>
+            <td>${id}</td><td>${siloCount}</td>
+            <td class="settings-actions-cell">
+              <button type="button" onclick="editHouse(${argument})">Edit</button>
+              <button type="button" onclick="deleteHouse(${argument})">Remove</button>
+            </td>
+          </tr>`;
+        }).join('');
+      document.getElementById('settingsHouseRows').innerHTML = houseRows ||
+        '<tr><td class="settings-empty" colspan="3">No houses have been added.</td></tr>';
+
+      const siloRows = settingsData.silos
+        .slice()
+        .sort(function(left, right) { return left.id.localeCompare(right.id); })
+        .map(function(silo) {
+          const id = escapeSettingsHtml(silo.id);
+          const argument = settingsInlineArgument(silo.id);
+          const houseId = escapeSettingsHtml(silo.houseId);
+          const lengthUnit = escapeSettingsHtml(lengthUnitLabels[silo.lengthUnit]);
+          const volumeUnit = escapeSettingsHtml(volumeUnitLabels[silo.volumeUnit]);
+          const cylinderMeasurements = silo.cylinders.map(function(cylinder, index) {
+            const height = formatSettingsNumber(cylinder.heightM / lengthUnitToMeters[silo.lengthUnit]);
+            const diameter = formatSettingsNumber(cylinder.diameterM / lengthUnitToMeters[silo.lengthUnit]);
+            return `<div>Cylinder ${index + 1}: ${height} h × ${diameter} d ${lengthUnit}</div>`;
+          }).join('');
+          return `<tr>
+            <td>${id}</td><td>${houseId}</td><td>${silo.cylinders.length}</td>
+            <td>${cylinderMeasurements}</td>
+            <td>${formatSettingsNumber(silo.coneHeightM / lengthUnitToMeters[silo.lengthUnit])} ${lengthUnit}</td>
+            <td>${formatSettingsNumber(silo.volumeM3 / volumeUnitToCubicMeters[silo.volumeUnit])} ${volumeUnit}</td>
+            <td class="settings-actions-cell">
+              <button type="button" onclick="editSilo(${argument})">Edit</button>
+              <button type="button" onclick="deleteSilo(${argument})">Remove</button>
+            </td>
+          </tr>`;
+        }).join('');
+      document.getElementById('settingsSiloRows').innerHTML = siloRows ||
+          '<tr><td class="settings-empty" colspan="7">No silos have been added.</td></tr>';
+      updateSiloFormUnitLabels();
+    }
+
+    function updateSiloFormUnitLabels() {
+      const lengthLabel = lengthUnitLabels[document.getElementById('siloSettingsLengthUnit').value] || 'm';
+      const volumeLabel = volumeUnitLabels[document.getElementById('siloSettingsVolumeUnit').value] || 'm³';
+      document.getElementById('coneHeightUnit').textContent = `(${lengthLabel})`;
+      document.querySelectorAll('#siloCylinderMeasurements .settings-unit-label').forEach(function(label) {
+        label.textContent = `(${lengthLabel})`;
+      });
+      document.getElementById('volumeUnit').textContent = `(${volumeLabel})`;
+    }
+
+    function clearSettingsErrors() {
+      document.querySelectorAll('.settings-field-error').forEach(function(error) {
+        error.textContent = '';
+      });
+    }
+
+    function ensureSettingsLoaded() {
+      if (settingsData) return true;
+      showSettingsToast('Settings are not available yet. Check the connection and reload.', true);
+      return false;
+    }
+
+    async function persistSettings(nextSettings, successMessage) {
+      if (!ensureSettingsLoaded()) return false;
+      if (settingsIsSaving) return false;
+      settingsIsSaving = true;
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(nextSettings)
+        });
+        const result = await response.json();
+        if (!response.ok || result.error) {
+          throw new Error(result.error || 'Unable to save settings.');
+        }
+        settingsData = result.settings || nextSettings;
+        renderSettings();
+        showSettingsToast(successMessage, false);
+        return true;
+      } catch (error) {
+        showSettingsToast(`Settings could not be saved: ${error.message}`, true);
+        console.error('Error saving settings:', error);
+        return false;
+      } finally {
+        settingsIsSaving = false;
+      }
+    }
+
+    async function saveDefaultLengthUnit() {
+      if (!ensureSettingsLoaded()) return;
+      const defaultLengthUnit = document.getElementById('settingsDefaultUnit').value;
+      if (!lengthUnitLabels[defaultLengthUnit]) {
+        showSettingsToast('Choose a valid default length unit.', true);
+        return;
+      }
+      const saved = await persistSettings(
+        Object.assign({}, settingsData, { defaultLengthUnit: defaultLengthUnit }),
+        'Default length unit saved.'
+      );
+      if (saved && !editingSiloId) {
+        document.getElementById('siloSettingsLengthUnit').value = defaultLengthUnit;
+        changeSiloLengthUnit();
+      }
+    }
+
+    function cancelHouseEdit() {
+      editingHouseId = '';
+      document.getElementById('houseSettingsId').value = '';
+      document.getElementById('houseSettingsSubmit').textContent = 'Add house';
+      document.getElementById('houseSettingsCancel').hidden = true;
+      clearSettingsErrors();
+    }
+
+    function editHouse(id) {
+      if (!ensureSettingsLoaded()) return;
+      const house = settingsData.houses.find(function(item) { return item.id === id; });
+      if (!house) return;
+      editingHouseId = id;
+      document.getElementById('houseSettingsId').value = house.id;
+      document.getElementById('houseSettingsSubmit').textContent = 'Save house';
+      document.getElementById('houseSettingsCancel').hidden = false;
+      document.getElementById('houseSettingsId').focus();
+    }
+
+    async function saveHouse(event) {
+      event.preventDefault();
+      if (!ensureSettingsLoaded()) return;
+      clearSettingsErrors();
+      const id = document.getElementById('houseSettingsId').value.trim();
+      const errorElement = document.getElementById('houseSettingsIdError');
+      if (!id) {
+        errorElement.textContent = 'Enter a house name or ID.';
+        showSettingsToast('House name or ID is required.', true);
+        return;
+      }
+      const duplicate = settingsData.houses.some(function(house) {
+        return house.id.toLocaleLowerCase() !== editingHouseId.toLocaleLowerCase() &&
+          house.id.toLocaleLowerCase() === id.toLocaleLowerCase();
+      });
+      if (duplicate) {
+        errorElement.textContent = 'House names or IDs must be unique.';
+        showSettingsToast('That house name or ID is already in use.', true);
+        return;
+      }
+      const houses = settingsData.houses.map(function(house) {
+        return house.id === editingHouseId ? { id: id } : { id: house.id };
+      });
+      if (!editingHouseId) houses.push({ id: id });
+      const silos = settingsData.silos.map(function(silo) {
+        return Object.assign({}, silo, {
+          houseId: silo.houseId.toLocaleLowerCase() === editingHouseId.toLocaleLowerCase()
+            ? id
+            : silo.houseId
+        });
+      });
+      const saved = await persistSettings(
+        Object.assign({}, settingsData, { houses: houses, silos: silos }),
+        editingHouseId ? 'House updated.' : 'House added.'
+      );
+      if (saved) cancelHouseEdit();
+    }
+
+    async function deleteHouse(id) {
+      if (!ensureSettingsLoaded()) return;
+      const house = settingsData.houses.find(function(item) { return item.id === id; });
+      if (!house) return;
+      const assignedCount = settingsData.silos.filter(function(silo) {
+        return silo.houseId.toLocaleLowerCase() === id.toLocaleLowerCase();
+      }).length;
+      const detail = assignedCount
+        ? ` This also removes its ${assignedCount} assigned silo record${assignedCount === 1 ? '' : 's'}.`
+        : '';
+      if (!window.confirm(`Remove house "${id}"?${detail}`)) return;
+      const nextSettings = Object.assign({}, settingsData, {
+        houses: settingsData.houses.filter(function(item) { return item.id !== id; }),
+        silos: settingsData.silos.filter(function(silo) {
+          return silo.houseId.toLocaleLowerCase() !== id.toLocaleLowerCase();
+        })
+      });
+      const editedSilo = settingsData.silos.find(function(silo) {
+        return silo.id === editingSiloId;
+      });
+      if (await persistSettings(nextSettings, 'House removed.')) {
+        if (editingHouseId === id) cancelHouseEdit();
+        if (
+          settingsData.houses.length === 0 ||
+          (editedSilo && editedSilo.houseId.toLocaleLowerCase() === id.toLocaleLowerCase())
+        ) cancelSiloEdit();
+      }
+    }
+
+    function resetSiloForm() {
+      document.getElementById('siloSettingsForm').reset();
+      document.getElementById('siloSettingsLengthUnit').value = settingsData.defaultLengthUnit;
+      document.getElementById('siloSettingsVolumeUnit').value = 'm3';
+      siloFormLengthUnit = settingsData.defaultLengthUnit;
+      siloFormVolumeUnit = 'm3';
+      document.getElementById('siloCylinderMeasurements').innerHTML = '';
+      document.getElementById('siloSettingsVolume').value = '';
+      updateSiloFormUnitLabels();
+    }
+
+    function cancelSiloEdit() {
+      editingSiloId = '';
+      resetSiloForm();
+      document.getElementById('siloSettingsSubmit').textContent = 'Add silo';
+      document.getElementById('siloSettingsCancel').hidden = true;
+      clearSettingsErrors();
+    }
+
+    function editSilo(id) {
+      if (!ensureSettingsLoaded()) return;
+      const silo = settingsData.silos.find(function(item) { return item.id === id; });
+      if (!silo) return;
+      editingSiloId = id;
+      const lengthUnit = silo.lengthUnit;
+      const volumeUnit = silo.volumeUnit;
+      document.getElementById('siloSettingsId').value = silo.id;
+      document.getElementById('siloSettingsHouse').value = silo.houseId;
+      document.getElementById('siloSettingsCylinderCount').value = String(silo.cylinders.length);
+      document.getElementById('siloSettingsLengthUnit').value = lengthUnit;
+      renderCylinderMeasurementInputs(silo.cylinders.map(function(cylinder) {
+        return {
+          height: String(cylinder.heightM / lengthUnitToMeters[lengthUnit]),
+          diameter: String(cylinder.diameterM / lengthUnitToMeters[lengthUnit])
+        };
+      }));
+      document.getElementById('siloSettingsConeHeight').value =
+        String(silo.coneHeightM / lengthUnitToMeters[lengthUnit]);
+      document.getElementById('siloSettingsVolumeUnit').value = volumeUnit;
+      document.getElementById('siloSettingsVolume').value =
+        String(silo.volumeM3 / volumeUnitToCubicMeters[volumeUnit]);
+      siloFormLengthUnit = lengthUnit;
+      siloFormVolumeUnit = volumeUnit;
+      updateSiloFormUnitLabels();
+      document.getElementById('siloSettingsSubmit').textContent = 'Save silo';
+      document.getElementById('siloSettingsCancel').hidden = false;
+      clearSettingsErrors();
+      document.getElementById('siloSettingsId').focus();
+    }
+
+    function changeSiloLengthUnit() {
+      const nextUnit = document.getElementById('siloSettingsLengthUnit').value;
+      const dimensionInputs = Array.from(document.querySelectorAll(
+        '[data-cylinder-height], [data-cylinder-diameter]'
+      ));
+      dimensionInputs.push(document.getElementById('siloSettingsConeHeight'));
+      dimensionInputs.forEach(function(input) {
+        const value = Number(input.value);
+        if (input.value !== '' && Number.isFinite(value)) {
+          const meters = value * lengthUnitToMeters[siloFormLengthUnit];
+          input.value = String(meters / lengthUnitToMeters[nextUnit]);
+        }
+      });
+      siloFormLengthUnit = nextUnit;
+      document.querySelectorAll('#siloCylinderMeasurements .settings-unit-label').forEach(function(label) {
+        label.textContent = `(${lengthUnitLabels[nextUnit]})`;
+      });
+      updateSiloFormUnitLabels();
+    }
+
+    function changeSiloVolumeUnit() {
+      const nextUnit = document.getElementById('siloSettingsVolumeUnit').value;
+      const input = document.getElementById('siloSettingsVolume');
+      const value = Number(input.value);
+      if (input.value !== '' && Number.isFinite(value)) {
+        const cubicMeters = value * volumeUnitToCubicMeters[siloFormVolumeUnit];
+        input.value = String(cubicMeters / volumeUnitToCubicMeters[nextUnit]);
+      }
+      siloFormVolumeUnit = nextUnit;
+      updateSiloFormUnitLabels();
+    }
+
+    function calculateSiloFormVolume() {
+      const count = Number(document.getElementById('siloSettingsCylinderCount').value);
+      const coneHeight = Number(document.getElementById('siloSettingsConeHeight').value);
+      const cylinderInputs = readCylinderFormValues();
+      const volumeInput = document.getElementById('siloSettingsVolume');
+      if (
+        !Number.isInteger(count) ||
+        count !== cylinderInputs.length ||
+        !Number.isFinite(coneHeight) ||
+        coneHeight <= 0 ||
+        cylinderInputs.some(function(cylinder) {
+          return cylinder.height === '' || cylinder.diameter === '' ||
+            !Number.isFinite(Number(cylinder.height)) || Number(cylinder.height) <= 0 ||
+            !Number.isFinite(Number(cylinder.diameter)) || Number(cylinder.diameter) <= 0;
+        })
+      ) {
+        volumeInput.value = '';
+        return;
+      }
+      const cylinders = cylinderInputs.map(function(cylinder) {
+        return {
+          heightM: Number(cylinder.height) * lengthUnitToMeters[siloFormLengthUnit],
+          diameterM: Number(cylinder.diameter) * lengthUnitToMeters[siloFormLengthUnit]
+        };
+      });
+      const volumeM3 = calculateSiloVolumeM3(
+        cylinders,
+        coneHeight * lengthUnitToMeters[siloFormLengthUnit]
+      );
+      volumeInput.value =
+        String(volumeM3 / volumeUnitToCubicMeters[siloFormVolumeUnit]);
+    }
+
+    function changeSiloCylinderCount() {
+      const existingValues = readCylinderFormValues();
+      const count = Number(document.getElementById('siloSettingsCylinderCount').value);
+      const values = Number.isInteger(count) && count >= 3 && count <= 10
+        ? Array.from({ length: count }, function(_, index) {
+          return existingValues[index] || { height: '', diameter: '' };
+        })
+        : [];
+      renderCylinderMeasurementInputs(values);
+      clearSettingsErrors();
+      calculateSiloFormVolume();
+    }
+
+    async function saveSilo(event) {
+      event.preventDefault();
+      if (!ensureSettingsLoaded()) return;
+      clearSettingsErrors();
+      const id = document.getElementById('siloSettingsId').value.trim();
+      const houseId = document.getElementById('siloSettingsHouse').value;
+      const cylinderCount = Number(document.getElementById('siloSettingsCylinderCount').value);
+      const lengthUnit = document.getElementById('siloSettingsLengthUnit').value;
+      const volumeUnit = document.getElementById('siloSettingsVolumeUnit').value;
+      const coneHeight = document.getElementById('siloSettingsConeHeight').value;
+      const volume = document.getElementById('siloSettingsVolume').value;
+      const cylinderMeasurements = readCylinderFormValues();
+      let isValid = true;
+      function setError(field, message) {
+        document.getElementById(`${field}Error`).textContent = message;
+        isValid = false;
+      }
+      if (!id) setError('siloSettingsId', 'Enter a silo name or ID.');
+      if (!houseId) setError('siloSettingsHouse', 'Assign this silo to a house.');
+      if (!Number.isInteger(cylinderCount) || cylinderCount < 3 || cylinderCount > 10) {
+        setError('siloSettingsCylinderCount', 'Choose a whole number from 3 to 10.');
+      }
+      const duplicate = settingsData.silos.some(function(silo) {
+        return silo.id.toLocaleLowerCase() !== editingSiloId.toLocaleLowerCase() &&
+          silo.id.toLocaleLowerCase() === id.toLocaleLowerCase();
+      });
+      if (id && duplicate) setError('siloSettingsId', 'Silo names or IDs must be unique.');
+      if (cylinderMeasurements.length !== cylinderCount) {
+        setError('siloSettingsCylinderCount', 'Add measurements for every cylinder.');
+      }
+      const cylinders = cylinderMeasurements.map(function(cylinder, index) {
+        const height = Number(cylinder.height);
+        const diameter = Number(cylinder.diameter);
+        if (cylinder.height === '' || !Number.isFinite(height) || height <= 0) {
+          setError(`siloCylinderHeight${index + 1}`, 'Enter a positive number.');
+        }
+        if (cylinder.diameter === '' || !Number.isFinite(diameter) || diameter <= 0) {
+          setError(`siloCylinderDiameter${index + 1}`, 'Enter a positive number.');
+        }
+        return {
+          heightM: height * lengthUnitToMeters[lengthUnit],
+          diameterM: diameter * lengthUnitToMeters[lengthUnit]
+        };
+      });
+      const coneHeightM = Number(coneHeight) * lengthUnitToMeters[lengthUnit];
+      const volumeM3 = Number(volume) * volumeUnitToCubicMeters[volumeUnit];
+      if (coneHeight === '' || !Number.isFinite(coneHeightM) || coneHeightM <= 0) {
+        setError('siloSettingsConeHeight', 'Enter a positive number.');
+      }
+      if (volume === '' || !Number.isFinite(volumeM3) || volumeM3 <= 0) {
+        setError('siloSettingsVolume', 'Enter a positive number.');
+      }
+      if (!isValid) {
+        showSettingsToast('Check the highlighted silo fields and try again.', true);
+        return;
+      }
+      const silo = Object.assign({
+        id: id,
+        houseId: houseId,
+        cylinderCount: cylinderCount,
+        cylinders: cylinders,
+        coneHeightM: coneHeightM,
+        lengthUnit: lengthUnit,
+        volumeM3: volumeM3,
+        volumeUnit: volumeUnit
+      });
+      const silos = settingsData.silos.filter(function(item) {
+        return item.id !== editingSiloId;
+      });
+      silos.push(silo);
+      const saved = await persistSettings(
+        Object.assign({}, settingsData, { silos: silos }),
+        editingSiloId ? 'Silo updated.' : 'Silo added.'
+      );
+      if (saved) cancelSiloEdit();
+    }
+
+    async function deleteSilo(id) {
+      if (!ensureSettingsLoaded()) return;
+      const silo = settingsData.silos.find(function(item) { return item.id === id; });
+      if (!silo || !window.confirm(`Remove silo "${id}"?`)) return;
+      const nextSettings = Object.assign({}, settingsData, {
+        silos: settingsData.silos.filter(function(item) { return item.id !== id; })
+      });
+      if (await persistSettings(nextSettings, 'Silo removed.') && editingSiloId === id) {
+        cancelSiloEdit();
+      }
+    }
 
     function getPSTDateAndTimeString() {
       const parts = new Intl.DateTimeFormat('en-CA', {
@@ -935,6 +1758,7 @@
       });
 
       fetchFromCloud();
+      loadSettings();
     }
 
     function makePrintableSiloSvg(houseKey, idx) {

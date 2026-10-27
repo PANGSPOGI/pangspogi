@@ -57,6 +57,23 @@ dark-mode toggle that remembers the setting in the current browser.
 The main action bar stays fixed at the bottom while scrolling, with extra page
 spacing so it does not cover the last house cards.
 
+## Settings
+
+Open **Settings** from the main navigation to manage the house and silo
+register, assign silos to houses, and choose a default length unit. The initial
+register is populated from the existing FH house and silo dimensions. New and
+edited dimensions are stored in meters and volume in cubic meters; the selected
+units only affect how those values are entered and displayed. Set the cylinder
+count to enter separate heights and diameters for every cylinder. Silo volume
+is calculated from each cylinder plus the cone (using Cylinder 1's diameter)
+and can be overridden in the form.
+
+Settings are stored in the `SiloSettings` tab in the existing spreadsheet,
+separately from tracker readings and feed forecasts. The Apps Script deployment
+must be updated with `apps-script/Code.gs` to enable settings reads and saves.
+The existing tracker, readings, and reports keep their current behavior and
+storage.
+
 ## Silo profiles
 
 The tracker uses the dimension sheet's profiles and layer weights to draw the

@@ -1,6 +1,7 @@
 const SPREADSHEET_ID = '1Tq4-mxOc9JF6PIZCOBglV0jUCM-wCPLbJPvRcfMVjTU';
 const READINGS_SHEET = 'Readings';
 const FORECAST_SHEET = 'FeedForecasts';
+const SETTINGS_SHEET = 'SiloSettings';
 const READINGS_HEADERS = [
   'Timestamp',
   'Date',
@@ -49,6 +50,12 @@ function doPost(event) {
         break;
       case 'fetchLatestState':
         result = fetchLatestState_();
+        break;
+      case 'fetchSettings':
+        result = fetchSettings_();
+        break;
+      case 'saveSettings':
+        result = saveSettings_(request.payload);
         break;
       case 'saveFeedForecast':
         result = saveFeedForecast_(request.payload);
@@ -203,6 +210,86 @@ function fetchLatestState_() {
     lastSavedDate: lastSavedDate,
     lastSavedTime: lastSavedTime,
   };
+}
+
+function fetchSettings_() {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SETTINGS_SHEET);
+  if (!sheet || sheet.getLastRow() < 2) return { settings: null };
+  const rawSettings = sheet.getRange(2, 1).getValue();
+  if (!rawSettings) return { settings: null };
+  try {
+    return { settings: JSON.parse(String(rawSettings)) };
+  } catch (error) {
+    console.error('Could not parse saved silo settings.');
+    throw new Error('Saved silo settings are invalid. Review the SiloSettings sheet.');
+  }
+}
+
+function saveSettings_(settings) {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    throw new Error('Settings have an invalid format.');
+  }
+  if (['m', 'cm', 'mm', 'ft', 'in'].indexOf(settings.defaultLengthUnit) < 0) {
+    throw new Error('Choose a valid default length unit.');
+  }
+  if (!Array.isArray(settings.houses) || settings.houses.length > 500 ||
+      !Array.isArray(settings.silos) || settings.silos.length > 1000) {
+    throw new Error('Settings contain too many or invalid houses or silos.');
+  }
+
+  const houseIds = Object.create(null);
+  settings.houses.forEach(function(house) {
+    if (!house || typeof house.id !== 'string' || !house.id.trim() || house.id.length > 100) {
+      throw new Error('Every house needs a name or ID of 1 to 100 characters.');
+    }
+    const id = house.id.trim().toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(houseIds, id)) {
+      throw new Error('House names or IDs must be unique.');
+    }
+    houseIds[id] = true;
+  });
+
+  const siloIds = Object.create(null);
+  settings.silos.forEach(function(silo) {
+    if (!silo || typeof silo.id !== 'string' || !silo.id.trim() || silo.id.length > 100) {
+      throw new Error('Every silo needs a name or ID of 1 to 100 characters.');
+    }
+    const id = silo.id.trim().toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(siloIds, id)) {
+      throw new Error('Silo names or IDs must be unique.');
+    }
+    siloIds[id] = true;
+    if (!houseIds[String(silo.houseId || '').trim().toLowerCase()]) {
+      throw new Error('Assign every silo to an existing house.');
+    }
+    if (!Number.isInteger(silo.cylinderCount) || silo.cylinderCount < 3 || silo.cylinderCount > 10) {
+      throw new Error('The cylinder count must be a whole number from 3 to 10.');
+    }
+    if (!Array.isArray(silo.cylinders) || silo.cylinders.length !== silo.cylinderCount) {
+      throw new Error('Provide measurements for every silo cylinder.');
+    }
+    silo.cylinders.forEach(function(cylinder, index) {
+      if (!cylinder || !Number.isFinite(cylinder.heightM) || cylinder.heightM <= 0 ||
+          !Number.isFinite(cylinder.diameterM) || cylinder.diameterM <= 0) {
+        throw new Error('Cylinder ' + (index + 1) + ' needs positive height and diameter.');
+      }
+    });
+    ['coneHeightM', 'volumeM3'].forEach(function(field) {
+      if (!Number.isFinite(silo[field]) || silo[field] <= 0) {
+        throw new Error('Silo dimensions and volume must be positive numbers.');
+      }
+    });
+    if (['m', 'cm', 'mm', 'ft', 'in'].indexOf(silo.lengthUnit) < 0 ||
+        ['m3', 'L', 'ft3'].indexOf(silo.volumeUnit) < 0) {
+      throw new Error('A silo has an invalid length or volume unit.');
+    }
+  });
+
+  const serializedSettings = JSON.stringify(settings);
+  if (serializedSettings.length > 45000) throw new Error('Settings are too large to save.');
+  const sheet = getSheet_(SETTINGS_SHEET, ['SettingsJSON']);
+  sheet.getRange(2, 1).setValue(serializedSettings);
+  return { status: 'SUCCESS', settings: settings };
 }
 
 function isValidDateString_(value) {
