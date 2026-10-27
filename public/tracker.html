@@ -785,13 +785,14 @@
         <form class="settings-editor-form" id="siloSettingsForm" onsubmit="saveSilo(event)" novalidate>
         <div class="settings-form-grid">
           <div class="settings-field">
-            <label for="siloSettingsId">Silo name or ID</label>
-            <input id="siloSettingsId" maxlength="100" autocomplete="off">
+            <label for="siloSettingsId">Silo name or number</label>
+            <input id="siloSettingsId" maxlength="100" autocomplete="off" oninput="updateSiloIdPreview()">
             <span class="settings-field-error" id="siloSettingsIdError"></span>
+            <div class="settings-volume-hint" id="siloIdFormatPreview">Enter a number to format it for the selected house, such as FH20-Silo1.</div>
           </div>
           <div class="settings-field">
             <label for="siloSettingsHouse">Assigned house</label>
-            <select id="siloSettingsHouse"></select>
+            <select id="siloSettingsHouse" onchange="updateSiloIdPreview()"></select>
             <span class="settings-field-error" id="siloSettingsHouseError"></span>
           </div>
           <div class="settings-field">
@@ -1205,6 +1206,23 @@
         : silo.id;
     }
 
+    function formatSiloId(value, houseId) {
+      const entered = value.trim();
+      const siloNumber = entered.match(/^(?:(?:FH|CH)\d+-)?Silo([1-9]\d*)$/i) ||
+        entered.match(/^([1-9]\d*)$/);
+      return siloNumber && houseId ? `${houseId}-Silo${siloNumber[1]}` : entered;
+    }
+
+    function updateSiloIdPreview() {
+      const value = document.getElementById('siloSettingsId').value;
+      const houseId = document.getElementById('siloSettingsHouse').value;
+      const preview = document.getElementById('siloIdFormatPreview');
+      const formattedId = formatSiloId(value, houseId);
+      preview.textContent = formattedId && formattedId !== value.trim()
+        ? `Saved as: ${formattedId}`
+        : 'Enter a number to format it for the selected house, such as FH20-Silo1.';
+    }
+
     function syncConfiguredFarmData() {
       const previousFarmData = farmData;
       const nextFarmData = {};
@@ -1455,6 +1473,7 @@
         return house.id.toLocaleLowerCase() === selectedHouseId.toLocaleLowerCase();
       });
       if (retainedHouse) siloHouseSelect.value = retainedHouse.id;
+      updateSiloIdPreview();
 
       const houseSiloRows = settingsData.houses
         .slice()
@@ -1706,8 +1725,10 @@
       editingSiloId = id;
       const lengthUnit = silo.lengthUnit;
       const volumeUnit = silo.volumeUnit;
-      document.getElementById('siloSettingsId').value = silo.id;
+      const siloNumber = silo.id.match(/^(?:(?:FH|CH)\d+-)?Silo([1-9]\d*)$/i);
+      document.getElementById('siloSettingsId').value = siloNumber ? siloNumber[1] : silo.id;
       document.getElementById('siloSettingsHouse').value = silo.houseId;
+      updateSiloIdPreview();
       document.getElementById('siloSettingsCylinderCount').value = String(silo.cylinders.length);
       document.getElementById('siloSettingsLengthUnit').value = lengthUnit;
       renderCylinderMeasurementInputs(silo.cylinders.map(function(cylinder) {
@@ -1816,8 +1837,9 @@
       event.preventDefault();
       if (!ensureSettingsLoaded()) return;
       clearSettingsErrors();
-      const id = document.getElementById('siloSettingsId').value.trim();
+      const enteredId = document.getElementById('siloSettingsId').value.trim();
       const houseId = document.getElementById('siloSettingsHouse').value;
+      const id = formatSiloId(enteredId, houseId);
       const cylinderCount = Number(document.getElementById('siloSettingsCylinderCount').value);
       const lengthUnit = document.getElementById('siloSettingsLengthUnit').value;
       const volumeUnit = document.getElementById('siloSettingsVolumeUnit').value;
@@ -1830,7 +1852,8 @@
         document.getElementById(`${field}Error`).textContent = message;
         isValid = false;
       }
-      if (!id) setError('siloSettingsId', 'Enter a silo name or ID.');
+      if (!enteredId) setError('siloSettingsId', 'Enter a silo name or number.');
+      if (id.length > 100) setError('siloSettingsId', 'Silo names or IDs must be 100 characters or fewer.');
       if (!houseId) setError('siloSettingsHouse', 'Assign this silo to a house.');
       if (!Number.isInteger(cylinderCount) || cylinderCount < 3 || cylinderCount > 10) {
         setError('siloSettingsCylinderCount', 'Choose a whole number from 3 to 10.');
