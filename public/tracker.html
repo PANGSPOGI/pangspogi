@@ -351,6 +351,7 @@
     .silo-unit { width: min(48%, 168px); padding: 8px 7px 7px; border: 1px solid #edf1ee; border-radius: 11px; background: #fbfdfb; }
     .canvas-container { width: min(100%, 142px); height: 178px; border-radius: 8px; background: linear-gradient(180deg, #f7faf8, #fff); }
     .silo-label-box { margin: 1px 0 5px; padding: 4px 8px; border: 0; border-radius: 6px; background: #e9f3ec; color: var(--green-dark); font-size: 10px; }
+    .silo-feed-select { width: 100%; max-width: 120px; min-height: 28px; margin-bottom: 4px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; font-size: 10px; font-weight: 750; }
     .status-badge { padding: 4px 8px; border: 0; border-radius: 20px; font-size: 9px; letter-spacing: .35px; }
     .status-safe { background: #e2f3e8; color: #1d7547; }
     .status-moderate { background: #e3f0f7; color: #216487; }
@@ -1249,6 +1250,7 @@
             name: displayName,
             settingsId: configuredSilo.id,
             maxCap: capacityKg,
+            feedType: forecastFeedTypes.includes(configuredSilo.feedType) ? configuredSilo.feedType : '',
             points: previousSilo ? previousSilo.points : getInitialLine(),
             isEmpty: previousSilo ? previousSilo.isEmpty : false,
             currentKg: previousSilo ? previousSilo.currentKg : 0,
@@ -1899,6 +1901,9 @@
       const silo = Object.assign({
         id: id,
         houseId: houseId,
+        feedType: settingsData.silos.find(function(item) {
+          return item.id === editingSiloId;
+        })?.feedType || '',
         cylinderCount: cylinderCount,
         cylinders: cylinders,
         coneHeightM: coneHeightM,
@@ -2862,6 +2867,7 @@
                         name: s.name,
                         settingsId: farmData[houseKey][idx].settingsId,
                         maxCap: s.maxCap,
+                        feedType: farmData[houseKey][idx].feedType,
                         currentKg: loadedKg,
                         currentPct: s.currentPct || 0,
                         status: s.status || 'SAFE',
@@ -3206,6 +3212,14 @@
               <canvas id="${canvasId}" width="150" height="210"></canvas>
             </div>
             <div class="silo-label-box">${escapeSettingsHtml(silo.name)}</div>
+            <select class="silo-feed-select" id="feedType_${houseKey}_${idx}"
+              aria-label="Feed type for ${escapeSettingsHtml(houseKey)} ${escapeSettingsHtml(silo.name)}"
+              onchange="changeSiloFeedType('${houseKey}', ${idx}, this.value)">
+              <option value="">Select feed type</option>
+              ${forecastFeedTypes.map(function(feedType) {
+                return `<option value="${feedType}"${silo.feedType === feedType ? ' selected' : ''}>${feedType}</option>`;
+              }).join('')}
+            </select>
             <div id="badge_${houseKey}_${idx}" class="status-badge status-safe">SAFE</div>
             <div class="readout-box" id="readout_${houseKey}_${idx}">0 kg (0%)</div>
             <div class="mini-actions">
@@ -3287,6 +3301,21 @@
         ctx.restore();
       }
 
+      if (forecastFeedTypes.includes(silo.feedType)) {
+        const labelY = (bodyTopY + bodyBotY) / 2;
+        const label = silo.feedType;
+        ctx.save();
+        ctx.font = 'bold 11px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const labelWidth = ctx.measureText(label).width + 12;
+        ctx.fillStyle = 'rgba(20, 31, 25, 0.82)';
+        ctx.fillRect(cx - labelWidth / 2, labelY - 9, labelWidth, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, cx, labelY);
+        ctx.restore();
+      }
+
       ctx.strokeStyle = isDarkTheme ? '#d4ded7' : '#000000'; ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(cx, topY); ctx.lineTo(rightX, bodyTopY); ctx.lineTo(rightX, bodyBotY);
@@ -3294,6 +3323,44 @@
       ctx.closePath(); ctx.stroke();
 
       updateReadouts(houseKey, idx);
+    }
+
+    async function changeSiloFeedType(houseKey, idx, feedType) {
+      if (!ensureSettingsLoaded()) {
+        renderHouses();
+        return;
+      }
+      if (feedType !== '' && !forecastFeedTypes.includes(feedType)) {
+        showSettingsToast('Choose a valid feed type.', true);
+        renderHouses();
+        return;
+      }
+      const silo = farmData[houseKey] && farmData[houseKey][idx];
+      if (!silo) return;
+      const configuredSilo = settingsData.silos.find(function(item) {
+        return item.id === silo.settingsId;
+      });
+      if (!configuredSilo) {
+        showSettingsToast('Could not find this silo in Settings.', true);
+        renderHouses();
+        return;
+      }
+      const previousFeedType = forecastFeedTypes.includes(configuredSilo.feedType)
+        ? configuredSilo.feedType
+        : '';
+      const silos = settingsData.silos.map(function(item) {
+        return item.id === configuredSilo.id
+          ? Object.assign({}, item, { feedType: feedType })
+          : item;
+      });
+      const saved = await persistSettings(
+        Object.assign({}, settingsData, { silos: silos }),
+        'Silo feed type saved.'
+      );
+      if (!saved) {
+        const select = document.getElementById(`feedType_${houseKey}_${idx}`);
+        if (select) select.value = previousFeedType;
+      }
     }
 
     function setupCanvasEvents(houseKey, idx, canvasId) {

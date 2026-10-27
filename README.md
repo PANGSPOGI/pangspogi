@@ -71,6 +71,8 @@ overridden in the form. Enter each silo's rated maximum feed capacity in kg for
 tracker readings. The Feeds settings let you save a size in millimeters for
 BSC, BSP, CBC, and BFP; no house assignment or unit selection is needed, and
 these values are not currently used to convert Delivery Forecast quantities.
+Choose a feed type from each dashboard silo card to show its label in the
+middle of the silo; the selection is saved with that silo's settings.
 
 Settings are stored in the `SiloSettings` tab in the existing spreadsheet,
 separately from tracker readings and feed forecasts. The Apps Script deployment
