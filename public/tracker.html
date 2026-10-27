@@ -246,13 +246,18 @@
     .modal-header-inputs div { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 15px; }
     .modal-header-inputs input { border: 1.5px solid #000; padding: 5px 10px; border-radius: 4px; font-weight: 800; outline: none; font-size: 14px; background: #fff; text-align: center; }
 
-    .split-tables-wrapper { display: flex; gap: 14px; align-items: flex-start; }
-    .table-col { flex: 1; }
-
-    .summary-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; table-layout: fixed; }
-    .summary-table th, .summary-table td { border: 1.5px solid #000000; padding: 4px 1px; text-align: center; font-weight: 800; vertical-align: middle; height: 38px; }
+    .summary-table-wrap { width: 100%; overflow-x: auto; }
+    .summary-table { width: 100%; min-width: 760px; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 11px; table-layout: fixed; }
+    .summary-table th, .summary-table td { border: 1.5px solid #000000; padding: 5px 4px; text-align: center; font-weight: 800; vertical-align: middle; }
     .summary-table th { background-color: #b8d5ed; color: #000000; font-size: 11px; font-weight: 900; }
-    .summary-table td.silo-val { text-align: center; font-size: 11px; }
+    .summary-silo-list { display: grid; gap: 4px; text-align: left; }
+    .summary-silo-entry { display: flex; align-items: center; flex-wrap: wrap; gap: 3px 6px; padding: 3px 5px; border-radius: 4px; background: #f1f5f9; }
+    .summary-silo-entry + .summary-silo-entry { border-top: 1px solid #cbd5e1; }
+    .summary-silo-name, .summary-feed-type { font-weight: 900; }
+    .summary-feed-type { color: #216487; }
+    .summary-silo-level { margin-left: auto; text-align: right; }
+    .summary-silo-level.empty { color: #dc2626; }
+    .summary-table td.summary-total { white-space: nowrap; }
     
     .age-input { width: 36px; height: 26px; text-align: center; font-weight: 900; font-size: 11px; border: 1.5px solid #000; border-radius: 4px; outline: none; background: #fff; display: inline-block; }
 
@@ -930,40 +935,20 @@
           </div>
         </div>
 
-        <div class="split-tables-wrapper">
-          <div class="table-col">
-            <table class="summary-table">
-              <thead>
-                <tr>
-                  <th style="width: 7%;">HSE #</th>
-                  <th style="width: 7%;">AGE</th>
-                  <th style="width: 21%;">SILO 1</th>
-                  <th style="width: 21%;">SILO 2</th>
-                  <th style="width: 10%;">TOTAL</th>
-                  <th style="width: 14%;">HRS TO CONSUME</th>
-                  <th style="width: 20%;">REMARKS</th>
-                </tr>
-              </thead>
-              <tbody id="summaryTableBodyLeft"></tbody>
-            </table>
-          </div>
-
-          <div class="table-col">
-            <table class="summary-table">
-              <thead>
-                <tr>
-                  <th style="width: 7%;">HSE #</th>
-                  <th style="width: 7%;">AGE</th>
-                  <th style="width: 21%;">SILO 1</th>
-                  <th style="width: 21%;">SILO 2</th>
-                  <th style="width: 10%;">TOTAL</th>
-                  <th style="width: 14%;">HRS TO CONSUME</th>
-                  <th style="width: 20%;">REMARKS</th>
-                </tr>
-              </thead>
-              <tbody id="summaryTableBodyRight"></tbody>
-            </table>
-          </div>
+        <div class="summary-table-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th style="width: 8%;">HOUSE</th>
+                <th style="width: 7%;">AGE</th>
+                <th style="width: 45%;">SILOS / FEED TYPE / LEVEL</th>
+                <th style="width: 11%;">TOTAL KG</th>
+                <th style="width: 13%;">HRS TO CONSUME</th>
+                <th style="width: 16%;">REMARKS</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody"></tbody>
+          </table>
         </div>
 
         <div class="status-summary-box">
@@ -3853,25 +3838,49 @@
       document.getElementById('modalRecordDate').value = document.getElementById('recordDate').value;
       document.getElementById('modalRecordTime').value = document.getElementById('recordTime').value;
 
-      const tbodyLeft = document.getElementById('summaryTableBodyLeft');
-      const tbodyRight = document.getElementById('summaryTableBodyRight');
-      tbodyLeft.innerHTML = ''; tbodyRight.innerHTML = '';
+      const tbody = document.getElementById('summaryTableBody');
+      tbody.innerHTML = '';
 
-      allHouseNumbers.forEach(function(num, index) {
-        const houseKey = `FH${num}`;
-        const s1 = farmData[houseKey][0], s2 = farmData[houseKey][1];
+      getConfiguredHouseIds().forEach(function(houseKey) {
+        const silos = farmData[houseKey] || [];
         const computedAge = computeFlockAge(houseKey);
-
-        const s1Kg = (!s1.isEmpty && s1.currentKg > 0) ? s1.currentKg : 0;
-        const s2Kg = (!s2.isEmpty && s2.currentKg > 0) ? s2.currentKg : 0;
-        const total = s1Kg + s2Kg;
-
-        const divisor = (num >= 13) ? 312 : 270;
+        const total = silos.reduce(function(sum, silo) {
+          return sum + ((!silo.isEmpty && Number(silo.currentKg) > 0) ? Number(silo.currentKg) : 0);
+        }, 0);
+        const siloEntries = silos.map(function(silo) {
+          const kg = !silo.isEmpty && Number(silo.currentKg) > 0 ? Number(silo.currentKg) : 0;
+          const capacityKg = Number(silo.maxCap);
+          const percentage = kg > 0 && capacityKg > 0
+            ? Math.min(100, Math.round(kg / capacityKg * 100))
+            : 0;
+          const feedType = forecastFeedTypes.includes(silo.feedType)
+            ? `<span class="summary-feed-type">${escapeSettingsHtml(silo.feedType)}</span>`
+            : '<span class="summary-feed-type">Feed not set</span>';
+          const level = kg > 0
+            ? `${kg.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg (${percentage}%)`
+            : 'EMPTY (0%)';
+          return `<div class="summary-silo-entry">
+            <span class="summary-silo-name">${escapeSettingsHtml(silo.name)}</span>
+            ${feedType}
+            <span class="summary-silo-level${kg > 0 ? '' : ' empty'}">${level}</span>
+          </div>`;
+        }).join('');
+        const siloList = siloEntries || '<span class="settings-empty">No silos assigned</span>';
+        const houseNumberMatch = houseKey.match(/^FH(\d+)$/i);
+        const houseNumber = houseNumberMatch ? Number(houseNumberMatch[1]) : null;
+        const divisor = houseNumber === null ? 270 : houseNumber >= 13 ? 312 : 270;
         const hrsToConsumeVal = total > 0 ? (total / divisor) : 0;
-        const hrsToConsume = hrsToConsumeVal.toFixed(1);
+        const hrsToConsume = houseNumber === null ? '—' : `${hrsToConsumeVal.toFixed(1)} hrs`;
 
         let autoRemark = 'SAFE';
-        if (total === 0 || hrsToConsumeVal <= 0) {
+        if (houseNumber === null) {
+          const siloStatuses = silos.map(getSiloStatus);
+          if (siloStatuses.includes('CRITICAL')) autoRemark = 'CRITICAL';
+          else if (siloStatuses.includes('MODERATE')) autoRemark = 'MODERATE';
+          else if (siloStatuses.length && siloStatuses.every(function(status) { return status === 'EMPTY'; })) {
+            autoRemark = 'EMPTY';
+          }
+        } else if (total === 0 || hrsToConsumeVal <= 0) {
           autoRemark = 'EMPTY';
         } else if (hrsToConsumeVal <= 6) {
           autoRemark = 'CLOSE TO EMPTY';
@@ -3888,13 +3897,10 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${houseKey}</td>
-          <td>
-            <span id="age_${houseKey}" style="font-weight:900;">${computedAge === '' ? '—' : computedAge}</span>
-          </td>
-          <td class="silo-val" style="${s1Kg === 0 ? 'color: #dc2626;' : ''}">${s1Kg > 0 ? `${s1Kg.toFixed(2)} (${s1.currentPct}%)` : 'EMPTY (0%)'}</td>
-          <td class="silo-val" style="${s2Kg === 0 ? 'color: #dc2626;' : ''}">${s2Kg > 0 ? `${s2Kg.toFixed(2)} (${s2.currentPct}%)` : 'EMPTY (0%)'}</td>
-          <td style="font-weight: 800; text-align: center;">${total}</td>
-          <td style="font-weight: 900; color: #0284c7; text-align: center;">${hrsToConsume} hrs</td>
+          <td>${computedAge === '' ? '—' : computedAge}</td>
+          <td><div class="summary-silo-list">${siloList}</div></td>
+          <td class="summary-total">${total.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+          <td style="font-weight: 900; color: #0284c7; text-align: center;">${hrsToConsume}</td>
           <td style="padding: 2px;">
             <select class="remarks-select rem-${currentRemark.toLowerCase().replace(/\s+/g, '')}" id="remark_${houseKey}" onchange="updateRemarkStyle(this, '${houseKey}')">
               <option value="CLOSE TO EMPTY" ${currentRemark === 'CLOSE TO EMPTY' ? 'selected' : ''}>CLOSE TO EMPTY</option>
@@ -3907,8 +3913,7 @@
           </td>
         `;
 
-        if (index < 9) tbodyLeft.appendChild(tr);
-        else tbodyRight.appendChild(tr);
+        tbody.appendChild(tr);
       });
 
       calculateStatusTotals();
@@ -3924,8 +3929,8 @@
 
     function calculateStatusTotals() {
       let safe = 0, moderate = 0, critical = 0, closeToEmpty = 0, empty = 0;
-      allHouseNumbers.forEach(function(num) {
-        const selectEl = document.getElementById(`remark_FH${num}`);
+      getConfiguredHouseIds().forEach(function(houseKey) {
+        const selectEl = document.getElementById(`remark_${houseKey}`);
         if (selectEl) {
           const val = selectEl.value;
           if (val === 'SAFE') safe++;
@@ -3951,8 +3956,7 @@
       document.getElementById('exportDateText').style.display = 'inline';
       document.getElementById('exportTimeText').style.display = 'inline';
 
-      allHouseNumbers.forEach(function(num) {
-        const houseKey = `FH${num}`;
+      getConfiguredHouseIds().forEach(function(houseKey) {
         const remSel = document.getElementById(`remark_${houseKey}`), expRem = document.getElementById(`exp_remark_${houseKey}`);
         if (remSel && expRem) { expRem.innerText = remSel.value; expRem.className = `export-badge rem-${remSel.value.toLowerCase().replace(/\s+/g, '')}`; remSel.style.display = 'none'; expRem.style.display = 'inline-block'; }
       });
@@ -3963,8 +3967,7 @@
         document.getElementById('exportDateText').style.display = 'none';
         document.getElementById('exportTimeText').style.display = 'none';
 
-        allHouseNumbers.forEach(function(num) {
-          const houseKey = `FH${num}`;
+        getConfiguredHouseIds().forEach(function(houseKey) {
           const remSel = document.getElementById(`remark_${houseKey}`), expRem = document.getElementById(`exp_remark_${houseKey}`);
           if (remSel && expRem) { remSel.style.display = 'inline-block'; expRem.style.display = 'none'; }
         });
