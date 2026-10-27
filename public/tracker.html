@@ -792,6 +792,7 @@
         <label class="settings-category-select" for="settingsCategory">
           Manage
           <select id="settingsCategory" onchange="changeSettingsCategory(this.value)">
+            <option value="houses" selected>Houses</option>
             <option value="silos">Silos</option>
             <option value="feeds">Feeds</option>
           </select>
@@ -819,7 +820,7 @@
 
     <section class="settings-card settings-category-panel" id="houseSiloManagementCard" aria-labelledby="houseSiloManagementHeading">
       <h2 id="houseSiloManagementHeading">Houses &amp; Silos</h2>
-      <p>Add, edit, or remove houses and silos from one list. Removing a house also removes its assigned silos.</p>
+      <p id="houseManagementDescription">Add, edit, or remove houses here. Use the <strong>Remove house</strong> button beside a house; assigned silos are removed with it.</p>
       <details class="settings-editor" id="houseSettingsEditor">
         <summary id="houseSettingsEditorSummary">Add house</summary>
         <form class="settings-editor-form" id="houseSettingsForm" onsubmit="saveHouse(event)" novalidate>
@@ -845,8 +846,8 @@
         </form>
       </details>
 
-      <p>All silo dimensions are stored in meters and volume in cubic meters. Display units can be changed without changing stored values.</p>
-      <details class="settings-editor" id="siloSettingsEditor">
+      <p id="siloSettingsDescription" hidden>Manage silo names, measurements, and feed types. Dimensions are stored in meters and volume in cubic meters.</p>
+      <details class="settings-editor" id="siloSettingsEditor" hidden>
         <summary id="siloSettingsEditorSummary">Add silo</summary>
         <form class="settings-editor-form" id="siloSettingsForm" onsubmit="saveSilo(event)" novalidate>
         <div class="settings-form-grid">
@@ -1552,9 +1553,15 @@
 
     function changeSettingsCategory(category) {
       const showFeeds = category === 'feeds';
-      document.getElementById('defaultUnitSettingsCard').hidden = showFeeds;
+      const showHouses = category === 'houses';
+      document.getElementById('defaultUnitSettingsCard').hidden = category !== 'silos';
       document.getElementById('houseSiloManagementCard').hidden = showFeeds;
       document.getElementById('feedSettingsCard').hidden = !showFeeds;
+      document.getElementById('houseSiloManagementHeading').textContent =
+        showHouses ? 'House management' : 'Houses & Silos';
+      document.getElementById('houseManagementDescription').hidden = !showHouses;
+      document.getElementById('siloSettingsDescription').hidden = showHouses;
+      document.getElementById('siloSettingsEditor').hidden = showHouses;
       renderFeedSettings();
     }
 
