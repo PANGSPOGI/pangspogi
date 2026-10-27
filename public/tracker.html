@@ -577,6 +577,10 @@
     .settings-silo-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .settings-silo-item + .settings-silo-item { padding-top: 7px; border-top: 1px solid var(--line); }
     .settings-silo-actions { display: flex; flex: 0 0 auto; gap: 5px; }
+    .settings-editor { margin: 14px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+    .settings-editor > summary { padding: 12px 14px; color: var(--green-dark); font-size: 13px; font-weight: 800; cursor: pointer; }
+    .settings-editor[open] > summary { border-bottom: 1px solid var(--line); }
+    .settings-editor-form { padding: 14px; }
     .settings-table button {
       padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
       background: #fff; color: var(--green-dark); font: inherit; font-size: 11px; font-weight: 750; cursor: pointer;
@@ -726,19 +730,8 @@
             <option value="feeds">Feeds</option>
           </select>
         </label>
-        <button class="btn-lg btn-clear" id="houseSiloRegisterToggle" type="button" aria-expanded="false" aria-controls="houseSiloRegister" onclick="toggleHouseSiloRegister()">View existing houses &amp; silos</button>
       </div>
     </div>
-
-    <section class="settings-card" id="houseSiloRegister" aria-labelledby="houseSiloRegisterHeading" hidden>
-      <h2 id="houseSiloRegisterHeading">Existing houses &amp; silos</h2>
-      <div class="settings-table-wrap">
-        <table class="settings-table">
-          <thead><tr><th scope="col">House</th><th scope="col">Assigned silos</th><th scope="col" class="settings-actions-cell">House actions</th></tr></thead>
-          <tbody id="settingsHouseSiloRows"></tbody>
-        </table>
-      </div>
-    </section>
 
     <section class="settings-card" id="defaultUnitSettingsCard" aria-labelledby="defaultUnitHeading">
       <h2 id="defaultUnitHeading">Default length unit</h2>
@@ -758,10 +751,12 @@
       </div>
     </section>
 
-    <section class="settings-card" id="houseSettingsCard" aria-labelledby="housesSettingsHeading">
-      <h2 id="housesSettingsHeading">Houses</h2>
-      <p>Add, rename, and remove houses. Removing a house also removes its assigned silo records.</p>
-      <form id="houseSettingsForm" onsubmit="saveHouse(event)" novalidate>
+    <section class="settings-card settings-category-panel" id="houseSiloManagementCard" aria-labelledby="houseSiloManagementHeading">
+      <h2 id="houseSiloManagementHeading">Houses &amp; Silos</h2>
+      <p>Add, edit, or remove houses and silos from one list. Removing a house also removes its assigned silos.</p>
+      <details class="settings-editor" id="houseSettingsEditor">
+        <summary id="houseSettingsEditorSummary">Add house</summary>
+        <form class="settings-editor-form" id="houseSettingsForm" onsubmit="saveHouse(event)" novalidate>
         <div class="settings-form-grid">
           <div class="settings-field">
             <label for="houseSettingsType">House type</label>
@@ -781,19 +776,13 @@
           <button class="btn-lg btn-primary" id="houseSettingsSubmit" type="submit">Add house</button>
           <button class="btn-lg btn-clear" id="houseSettingsCancel" type="button" onclick="cancelHouseEdit()" hidden>Cancel edit</button>
         </div>
-      </form>
-      <div class="settings-table-wrap">
-        <table class="settings-table">
-          <thead><tr><th scope="col">House</th><th scope="col">Assigned silo count</th><th scope="col" class="settings-actions-cell">Actions</th></tr></thead>
-          <tbody id="settingsHouseRows"></tbody>
-        </table>
-      </div>
-    </section>
+        </form>
+      </details>
 
-    <section class="settings-card settings-category-panel" id="siloSettingsCard" aria-labelledby="silosSettingsHeading">
-      <h2 id="silosSettingsHeading">Silos</h2>
-      <p>All dimensions are stored in meters and volume in cubic meters. Display units can be changed without changing stored values.</p>
-      <form id="siloSettingsForm" onsubmit="saveSilo(event)" novalidate>
+      <p>All silo dimensions are stored in meters and volume in cubic meters. Display units can be changed without changing stored values.</p>
+      <details class="settings-editor" id="siloSettingsEditor">
+        <summary id="siloSettingsEditorSummary">Add silo</summary>
+        <form class="settings-editor-form" id="siloSettingsForm" onsubmit="saveSilo(event)" novalidate>
         <div class="settings-form-grid">
           <div class="settings-field">
             <label for="siloSettingsId">Silo name or ID</label>
@@ -856,18 +845,12 @@
           <button class="btn-lg btn-primary" id="siloSettingsSubmit" type="submit">Add silo</button>
           <button class="btn-lg btn-clear" id="siloSettingsCancel" type="button" onclick="cancelSiloEdit()" hidden>Cancel edit</button>
         </div>
-      </form>
+        </form>
+      </details>
       <div class="settings-table-wrap">
         <table class="settings-table">
-          <thead>
-            <tr>
-              <th scope="col">Silo</th><th scope="col">House</th><th scope="col">Cylinders</th>
-              <th scope="col">Cylinder measurements (length unit)</th><th scope="col">Cone height (length unit)</th>
-              <th scope="col">Total volume (volume unit)</th><th scope="col">Capacity (kg)</th>
-              <th scope="col" class="settings-actions-cell">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="settingsSiloRows"></tbody>
+          <thead><tr><th scope="col">House</th><th scope="col">Assigned silos</th><th scope="col" class="settings-actions-cell">House actions</th></tr></thead>
+          <tbody id="settingsHouseSiloRows"></tbody>
         </table>
       </div>
     </section>
@@ -1263,52 +1246,9 @@
     function changeSettingsCategory(category) {
       const showFeeds = category === 'feeds';
       document.getElementById('defaultUnitSettingsCard').hidden = showFeeds;
-      document.getElementById('houseSettingsCard').hidden = showFeeds;
-      document.getElementById('siloSettingsCard').hidden = showFeeds;
+      document.getElementById('houseSiloManagementCard').hidden = showFeeds;
       document.getElementById('feedSettingsCard').hidden = !showFeeds;
-      document.getElementById('houseSiloRegisterToggle').hidden = showFeeds;
-      if (showFeeds) {
-        document.getElementById('houseSiloRegister').hidden = true;
-        document.getElementById('houseSiloRegisterToggle').setAttribute('aria-expanded', 'false');
-        document.getElementById('houseSiloRegisterToggle').textContent = 'View existing houses & silos';
-      }
       renderFeedSettings();
-    }
-
-    async function toggleHouseSiloRegister() {
-      const register = document.getElementById('houseSiloRegister');
-      const toggle = document.getElementById('houseSiloRegisterToggle');
-      register.hidden = !register.hidden;
-      toggle.setAttribute('aria-expanded', String(!register.hidden));
-      toggle.textContent = register.hidden
-        ? 'View existing houses & silos'
-        : 'Hide existing houses & silos';
-      if (!register.hidden && !settingsIsLoaded) {
-        showHouseSiloRegisterLoadState();
-        if (!settingsLoadError) await loadSettings();
-        if (!settingsIsLoaded) showHouseSiloRegisterLoadState();
-      }
-    }
-
-    function showHouseSiloRegisterLoadState() {
-      const message = settingsLoadError
-        ? window.location.protocol === 'file:'
-          ? 'Existing houses and silos are only available when the tracker is opened from its web app, not as a local file.'
-          : `Existing houses and silos could not be loaded: ${settingsLoadError}`
-        : 'Loading existing houses and silos...';
-      document.getElementById('settingsHouseSiloRows').innerHTML = `<tr>
-        <td class="settings-empty" colspan="3">
-          ${escapeSettingsHtml(message)}
-          ${settingsLoadError ? '<br><button type="button" onclick="retryHouseSiloRegisterLoad()">Retry</button>' : ''}
-        </td>
-      </tr>`;
-    }
-
-    async function retryHouseSiloRegisterLoad() {
-      settingsLoadError = '';
-      showHouseSiloRegisterLoadState();
-      await loadSettings();
-      if (!settingsIsLoaded) showHouseSiloRegisterLoadState();
     }
 
     function renderFeedSettings() {
@@ -1443,10 +1383,6 @@
       return escapeSettingsHtml(JSON.stringify(String(value)).replace(/</g, '\\u003c'));
     }
 
-    function formatSettingsNumber(value) {
-      return Number(value).toLocaleString(undefined, { maximumFractionDigits: 4 });
-    }
-
     function calculateSiloVolumeM3(cylinders, coneHeightM) {
       const cylinderVolume = cylinders.reduce(function(total, cylinder) {
         const radius = cylinder.diameterM / 2;
@@ -1520,26 +1456,6 @@
       });
       if (retainedHouse) siloHouseSelect.value = retainedHouse.id;
 
-      const houseRows = settingsData.houses
-        .slice()
-        .sort(function(left, right) { return compareHouseIds(left.id, right.id); })
-        .map(function(house) {
-          const siloCount = settingsData.silos.filter(function(silo) {
-            return silo.houseId.toLocaleLowerCase() === house.id.toLocaleLowerCase();
-          }).length;
-          const id = escapeSettingsHtml(house.id);
-          const argument = settingsInlineArgument(house.id);
-          return `<tr>
-            <td>${id}</td><td>${siloCount}</td>
-            <td class="settings-actions-cell">
-              <button type="button" onclick="editHouse(${argument})">Edit</button>
-              <button type="button" onclick="deleteHouse(${argument})">Remove</button>
-            </td>
-          </tr>`;
-        }).join('');
-      document.getElementById('settingsHouseRows').innerHTML = houseRows ||
-        '<tr><td class="settings-empty" colspan="3">No houses have been added.</td></tr>';
-
       const houseSiloRows = settingsData.houses
         .slice()
         .sort(function(left, right) { return compareHouseIds(left.id, right.id); })
@@ -1572,42 +1488,10 @@
             </td>
           </tr>`;
         }).join('');
-      document.getElementById('settingsHouseSiloRows').innerHTML = houseSiloRows ||
-        '<tr><td class="settings-empty" colspan="3">No houses have been added.</td></tr>';
+        document.getElementById('settingsHouseSiloRows').innerHTML = houseSiloRows ||
+          '<tr><td class="settings-empty" colspan="3">No houses have been added.</td></tr>';
 
-      const siloRows = settingsData.silos
-        .slice()
-        .sort(function(left, right) {
-          return compareHouseIds(left.houseId, right.houseId) ||
-            compareSiloIds(left.id, right.id);
-        })
-        .map(function(silo) {
-          const id = escapeSettingsHtml(silo.id);
-          const argument = settingsInlineArgument(silo.id);
-          const houseId = escapeSettingsHtml(silo.houseId);
-          const lengthUnit = escapeSettingsHtml(lengthUnitLabels[silo.lengthUnit]);
-          const volumeUnit = escapeSettingsHtml(volumeUnitLabels[silo.volumeUnit]);
-          const capacityKg = Number(silo.capacityKg) || Number(silo.volumeM3) * 1000;
-          const cylinderMeasurements = silo.cylinders.map(function(cylinder, index) {
-            const height = formatSettingsNumber(cylinder.heightM / lengthUnitToMeters[silo.lengthUnit]);
-            const diameter = formatSettingsNumber(cylinder.diameterM / lengthUnitToMeters[silo.lengthUnit]);
-            return `<div>Cylinder ${index + 1}: ${height} h × ${diameter} d ${lengthUnit}</div>`;
-          }).join('');
-          return `<tr>
-            <td>${id}</td><td>${houseId}</td><td>${silo.cylinders.length}</td>
-            <td>${cylinderMeasurements}</td>
-            <td>${formatSettingsNumber(silo.coneHeightM / lengthUnitToMeters[silo.lengthUnit])} ${lengthUnit}</td>
-            <td>${formatSettingsNumber(silo.volumeM3 / volumeUnitToCubicMeters[silo.volumeUnit])} ${volumeUnit}</td>
-            <td>${formatSettingsNumber(capacityKg)} kg</td>
-            <td class="settings-actions-cell">
-              <button type="button" onclick="editSilo(${argument})">Edit</button>
-              <button type="button" onclick="deleteSilo(${argument})">Remove</button>
-            </td>
-          </tr>`;
-        }).join('');
-      document.getElementById('settingsSiloRows').innerHTML = siloRows ||
-          '<tr><td class="settings-empty" colspan="8">No silos have been added.</td></tr>';
-      updateSiloFormUnitLabels();
+        updateSiloFormUnitLabels();
       changeSettingsCategory(document.getElementById('settingsCategory').value);
     }
 
@@ -1692,6 +1576,8 @@
       document.getElementById('houseSettingsNumber').value = '';
       document.getElementById('houseSettingsSubmit').textContent = 'Add house';
       document.getElementById('houseSettingsCancel').hidden = true;
+      document.getElementById('houseSettingsEditorSummary').textContent = 'Add house';
+      document.getElementById('houseSettingsEditor').open = false;
       clearSettingsErrors();
     }
 
@@ -1705,6 +1591,8 @@
       document.getElementById('houseSettingsNumber').value = match ? match[2] : '';
       document.getElementById('houseSettingsSubmit').textContent = 'Save house';
       document.getElementById('houseSettingsCancel').hidden = false;
+      document.getElementById('houseSettingsEditorSummary').textContent = `Edit house ${id}`;
+      document.getElementById('houseSettingsEditor').open = true;
       document.getElementById('houseSettingsNumber').focus();
     }
 
@@ -1806,6 +1694,8 @@
       resetSiloForm();
       document.getElementById('siloSettingsSubmit').textContent = 'Add silo';
       document.getElementById('siloSettingsCancel').hidden = true;
+      document.getElementById('siloSettingsEditorSummary').textContent = 'Add silo';
+      document.getElementById('siloSettingsEditor').open = false;
       clearSettingsErrors();
     }
 
@@ -1838,6 +1728,8 @@
       updateSiloFormUnitLabels();
       document.getElementById('siloSettingsSubmit').textContent = 'Save silo';
       document.getElementById('siloSettingsCancel').hidden = false;
+      document.getElementById('siloSettingsEditorSummary').textContent = `Edit silo ${silo.id}`;
+      document.getElementById('siloSettingsEditor').open = true;
       clearSettingsErrors();
       document.getElementById('siloSettingsId').focus();
     }
