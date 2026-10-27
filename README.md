@@ -38,8 +38,9 @@ Protection or another authentication layer before using it with real data.
 Public access to the Groq photo-reading endpoint can consume account limits.
 
 The spreadsheet keeps the existing `Readings` tab (it is created with headers
-if missing). The app creates a `FeedForecasts` tab on the first forecast save.
-Updating the Apps Script code later requires deploying a new version.
+if missing). The Apps Script bridge creates the `Farms` and `FeedForecasts`
+tabs when it first connects. Updating the Apps Script code later requires
+deploying a new version.
 
 Google Cloud billing is not required for this Apps Script approach. It remains
 subject to Google Apps Script service quotas.
@@ -74,11 +75,30 @@ these values are not currently used to convert Delivery Forecast quantities.
 Choose a feed type from each dashboard silo card to show its label in the
 middle of the silo; the selection is saved with that silo's settings.
 
-Settings are stored in the `SiloSettings` tab in the existing spreadsheet,
-separately from tracker readings and feed forecasts. The Apps Script deployment
-must be updated with `apps-script/Code.gs` to enable settings reads and saves.
-The existing tracker, readings, and reports keep their current behavior and
-storage.
+Settings are stored one row per farm in the `SiloSettings` tab in the existing
+spreadsheet, separately from tracker readings and feed forecasts. The Apps
+Script deployment must be updated with `apps-script/Code.gs` to enable settings
+reads and saves.
+
+## Multiple farms
+
+The farm selector in the header switches between separate farm workspaces.
+Choose **Add a farm** to enter a farm name and its CH/FH house counts; the app
+creates those houses and opens Settings so you can add and customize that
+farm's silos. Each farm has its own house/silo settings, readings, placement
+dates, feed sizes, and weekly delivery forecasts.
+
+The existing setup and historical records stay under **Mango Farm**. On the
+first request after updating Apps Script, the bridge creates a `Farms` tab,
+adds a farm ID column to `Readings` and `FeedForecasts`, and upgrades the
+`SiloSettings` tab to hold one settings record per farm. Older readings and
+forecasts with no farm ID continue to belong to Mango Farm. The migration
+preserves the original records and settings.
+
+Farm separation is data separation, not separate user accounts or permissions.
+All farms are visible to anyone who can access the tracker, so protect the app
+with Vercel Deployment Protection or add authentication before using it as a
+private multi-user service.
 
 ## Silo profiles
 
@@ -94,11 +114,8 @@ silos and map fill height to stored feed volume:
 ## Printed and photo silo readings
 
 Use **Print Silo Reading** to preview the paper form before printing. It creates
-three pages in the same six-house layout as the sample, with each silo drawn
-from its tracker profile. House order matches the supplied sheets: FH06/FH08
-through FH11/FH12, then FH01/FH02 through FH05/FH13, followed by FH14/FH15
-through FH18/FH19. The A4 print pages are separated explicitly to prevent the
-three-page form from being scaled together. **Upload Silo Photo** opens a
+farm-specific pages with up to six configured houses per page and each silo
+drawn from its tracker profile. **Upload Silo Photo** opens a
 drop-or-browse screen that accepts up to three photos (one for each printed
 report page) for a single combined review.
 

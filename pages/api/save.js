@@ -15,7 +15,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await saveReadings(req.body);
+    const body = req.body || {};
+    const result = await saveReadings(body.readings, String(body.farmId || 'mango-farm'));
     return res.status(200).json(result);
   } catch (error) {
     if (!error.statusCode || error.statusCode >= 500) {

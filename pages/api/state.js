@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const state = await fetchLatestState();
+    const state = await fetchLatestState(String(req.query.farmId || 'mango-farm'));
     return res.status(200).json(state);
   } catch (error) {
     logAppsScriptError('Failed to load tracker state:', error);

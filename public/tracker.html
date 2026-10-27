@@ -305,6 +305,7 @@
       --muted: #708078;
       --line: #e3eae5;
       --surface: #ffffff;
+      --surface-soft: #f3f7f4;
       --canvas: #f3f7f4;
       --green: #19734b;
       --green-dark: #124d35;
@@ -407,6 +408,32 @@
     .btn-forecast { background: #dceee2; color: #195c3a; }
     .modal-overlay { background: rgba(16,32,23,.58); backdrop-filter: blur(4px); }
     .modal-box { border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 24px 70px rgba(0,0,0,.22); }
+    .header-title { flex-wrap: wrap; }
+    .farm-picker { display: inline-flex; align-items: center; gap: 7px; }
+    .farm-picker-label { color: rgba(255,255,255,.72); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .farm-picker select { max-width: 220px; min-height: 34px; padding: 5px 30px 5px 10px; border: 1px solid rgba(255,255,255,.28); border-radius: 9px; background: rgba(255,255,255,.1); color: #fff; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+    .farm-picker select option { background: #fff; color: #17251f; }
+    .farm-picker select:focus-visible { outline: 2px solid #a9d8b8; outline-offset: 2px; }
+    .farm-setup-box { position: relative; display: block; width: min(540px, calc(100vw - 28px)); max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow: auto; padding: 0; background: var(--surface); color: var(--ink); text-align: left; }
+    .farm-setup-close { position: absolute; z-index: 1; top: 14px; right: 14px; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; font-size: 20px; cursor: pointer; }
+    .farm-setup-hero { position: relative; overflow: hidden; padding: 30px 34px 22px; background: radial-gradient(circle at 90% 15%, rgba(196,225,164,.28), transparent 31%), linear-gradient(135deg, #19382b, #286447 68%, #39835f); color: #fff; }
+    .farm-setup-hero::after { position: absolute; right: -48px; bottom: -96px; width: 220px; height: 220px; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; content: ""; box-shadow: 0 0 0 22px rgba(255,255,255,.035), 0 0 0 46px rgba(255,255,255,.025); }
+    .farm-setup-kicker { margin-bottom: 12px; color: #cbe7d4; font-size: 10px; font-weight: 850; letter-spacing: .15em; }
+    .farm-setup-hero h2 { margin-bottom: 8px; font-size: clamp(26px, 7vw, 36px); font-weight: 850; letter-spacing: -.04em; }
+    .farm-setup-hero p:last-child { max-width: 390px; color: rgba(255,255,255,.83); font-size: 13px; line-height: 1.6; }
+    .farm-setup-content { display: grid; gap: 16px; padding: 20px 34px 22px; }
+    .farm-setup-intro { color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .farm-setup-field { display: grid; gap: 7px; color: var(--ink); font-size: 12px; font-weight: 800; }
+    .farm-setup-field input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; }
+    .farm-house-counts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .farm-house-count { display: grid; gap: 8px; padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-soft); }
+    .farm-house-count label { display: grid; gap: 4px; color: var(--ink); font-size: 12px; font-weight: 850; }
+    .farm-house-count small { color: var(--muted); font-size: 10px; font-weight: 550; }
+    .farm-house-count input { width: 100%; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font: inherit; font-size: 18px; font-weight: 800; }
+    .farm-setup-preview { min-height: 18px; color: var(--muted); font-size: 11px; font-weight: 700; }
+    .farm-setup-error { margin: 0; color: #b42318; font-size: 12px; font-weight: 700; }
+    .farm-setup-actions { display: flex; gap: 9px; }
+    .farm-setup-actions button { flex: 1; }
     .empty-state { grid-column: 1 / -1; display: grid; gap: 7px; padding: 42px 18px; border: 1px dashed #cbd9ce; border-radius: 14px; background: rgba(255,255,255,.65); color: var(--ink); text-align: center; }
     .empty-state span { color: var(--muted); font-size: 12px; }
 
@@ -419,6 +446,9 @@
       .header { min-height: 62px; padding: 12px 15px; }
       .header-title { flex: 1 1 100%; }
       .header-title { gap: 7px; font-size: 13px; }
+      .farm-picker { margin-left: auto; }
+      .farm-picker-label { display: none; }
+      .farm-picker select { max-width: min(45vw, 190px); min-height: 32px; font-size: 11px; }
       .sync-indicator { padding: 5px 8px; font-size: 9px; }
       .main-content { padding: 18px 12px 112px; }
       .dashboard-intro { margin-bottom: 15px; }
@@ -467,6 +497,7 @@
       --muted: #a6b3ab;
       --line: #35423b;
       --surface: #202923;
+      --surface-soft: #26332b;
       --canvas: #151b17;
       --green: #39835f;
       --green-dark: #a4d2b5;
@@ -609,8 +640,10 @@
       background: #fff; color: var(--green-dark); font: inherit; font-size: 11px; font-weight: 750; cursor: pointer;
     }
     .settings-table button + button { margin-left: 5px; color: #ae3932; }
+    .settings-table button.settings-remove-house { border-color: #f0cfcb; background: #fce9e7; color: #ae3932; }
     body[data-theme="dark"] .settings-table button { background: #252f29; color: #d5ecdd; }
     body[data-theme="dark"] .settings-table button + button { color: #f0aaa3; }
+    body[data-theme="dark"] .settings-table button.settings-remove-house { border-color: #70413d; background: #3b2927; color: #ffb4aa; }
     .settings-empty { padding: 16px 8px; color: var(--muted) !important; text-align: center !important; }
     .settings-unit-row { display: flex; align-items: end; gap: 10px; max-width: 480px; }
     .settings-unit-row .settings-field { flex: 1; }
@@ -638,6 +671,10 @@
       .settings-unit-row { flex-direction: column; }
       .settings-unit-row .btn-lg { width: 100%; }
       .primary-nav button { flex: 1; padding: 7px 8px; }
+      .farm-setup-hero { padding: 28px 22px 20px; }
+      .farm-setup-content { gap: 14px; padding: 17px 22px 18px; }
+      .farm-house-counts { gap: 8px; }
+      .farm-house-count { padding: 11px; }
     }
   </style>
 </head>
@@ -647,6 +684,12 @@
     <div class="header-title">
       MANGO SILO TRACKER 
       <span class="sync-indicator" id="syncStatus">SAVED</span>
+      <label class="farm-picker" for="farmSelect">
+        <span class="farm-picker-label">Farm</span>
+        <select id="farmSelect" aria-label="Select farm" onchange="handleFarmSelect(this.value)" disabled>
+          <option value="">Loading farms…</option>
+        </select>
+      </label>
     </div>
     <div class="header-actions">
       <nav class="primary-nav" aria-label="Main navigation">
@@ -990,7 +1033,7 @@
       <div id="forecastReport" class="forecast-report">
         <div class="forecast-brand-line">
           <span class="forecast-logo">Bounty</span>
-          <div class="forecast-brand">MANGO FARM</div>
+          <div class="forecast-brand" id="forecastBrandName">MANGO FARM</div>
           <span aria-hidden="true" style="width:135px;"></span>
         </div>
         <h3>WEEKLY FEED DELIVERY FORECAST</h3>
@@ -1015,6 +1058,40 @@
         <button class="btn-lg btn-primary" onclick="closeForecast()">Close</button>
       </div>
     </div>
+  </div>
+
+  <div class="modal-overlay farm-setup-overlay" id="farmSetupOverlay" onclick="if(event.target===this) closeFarmSetup()">
+    <section class="modal-box farm-setup-box" role="dialog" aria-modal="true" aria-labelledby="farmSetupTitle" aria-describedby="farmSetupDescription">
+      <button class="farm-setup-close" type="button" aria-label="Close farm setup" onclick="closeFarmSetup()">×</button>
+      <div class="farm-setup-hero">
+        <p class="farm-setup-kicker">A FRESH START FOR YOUR FARM</p>
+        <h2 id="farmSetupTitle">Hey, good day!</h2>
+        <p id="farmSetupDescription">Let’s set up your new farm. First, tell us its name and how many CH and FH houses you look after.</p>
+      </div>
+      <form class="farm-setup-content" id="farmSetupForm" onsubmit="createFarmFromSetup(event)">
+        <p class="farm-setup-intro">Your new farm gets its own houses, silos, readings, settings, and delivery forecasts.</p>
+        <label class="farm-setup-field" for="newFarmName">
+          What should we call this farm?
+          <input id="newFarmName" type="text" maxlength="80" placeholder="e.g. North Farm" autocomplete="organization" required>
+        </label>
+        <div class="farm-house-counts" aria-label="Number of houses by type">
+          <div class="farm-house-count">
+            <label for="newFarmChCount">CH houses <small>Enter 0 if you have none</small></label>
+            <input id="newFarmChCount" type="number" min="0" max="50" value="0" inputmode="numeric" oninput="updateFarmHousePreview()">
+          </div>
+          <div class="farm-house-count">
+            <label for="newFarmFhCount">FH houses <small>Enter 0 if you have none</small></label>
+            <input id="newFarmFhCount" type="number" min="0" max="50" value="0" inputmode="numeric" oninput="updateFarmHousePreview()">
+          </div>
+        </div>
+        <p class="farm-setup-preview" id="farmHousePreview" aria-live="polite">Add at least one house to continue.</p>
+        <p class="farm-setup-error" id="farmSetupError" role="alert" hidden></p>
+        <div class="farm-setup-actions">
+          <button class="btn-lg btn-clear" type="button" onclick="closeFarmSetup()">Cancel</button>
+          <button class="btn-lg btn-primary" type="submit" id="createFarmButton">Create farm</button>
+        </div>
+      </form>
+    </section>
   </div>
 
   <!-- Add/Subtract Feed Modal -->
@@ -1106,6 +1183,11 @@
     const lengthUnitLabels = { m: 'm', cm: 'cm', mm: 'mm', ft: 'ft', in: 'in' };
     const volumeUnitLabels = { m3: 'm³', L: 'L', ft3: 'ft³' };
     let settingsData = null;
+    let farms = [];
+    let currentFarm = null;
+    let isCreatingFarm = false;
+    let settingsLoadRequestId = 0;
+    let stateLoadRequestId = 0;
     let settingsLoadError = '';
     let settingsIsLoaded = false;
     let siloFormInitialized = false;
@@ -1134,6 +1216,210 @@
       document.getElementById('dashboardNav').setAttribute('aria-current', settingsPage ? 'false' : 'page');
       document.getElementById('settingsNav').setAttribute('aria-current', settingsPage ? 'page' : 'false');
       if (!settingsPage) renderHouses();
+    }
+
+    function farmApiUrl(path) {
+      return `${path}?farmId=${encodeURIComponent(currentFarm ? currentFarm.id : 'mango-farm')}`;
+    }
+
+    async function loadFarms() {
+      const response = await fetch('/api/farms');
+      const result = await response.json();
+      if (!response.ok || result.error || !Array.isArray(result.farms) || !result.farms.length) {
+        throw new Error(result.error || 'No farms were returned.');
+      }
+      farms = result.farms;
+      let savedFarmId = '';
+      try {
+        savedFarmId = localStorage.getItem('silo_active_farm') || '';
+      } catch (error) {
+        console.warn('Unable to read the selected farm from this browser.', error);
+      }
+      const defaultFarm = farms.find(function(farm) { return farm.id === result.defaultFarmId; }) || farms[0];
+      const selectedFarm = farms.find(function(farm) { return farm.id === savedFarmId; }) || defaultFarm;
+      renderFarmSelect(selectedFarm.id);
+      return selectedFarm;
+    }
+
+    function renderFarmSelect(selectedFarmId) {
+      const select = document.getElementById('farmSelect');
+      select.innerHTML = farms.map(function(farm) {
+        return `<option value="${escapeSettingsHtml(farm.id)}">${escapeSettingsHtml(farm.name)}</option>`;
+      }).join('') + '<option value="__add_farm__">＋ Add a farm…</option>';
+      select.disabled = false;
+      select.value = selectedFarmId || '';
+    }
+
+    async function activateFarm(farm, force) {
+      if (!farm) return;
+      if (!force && currentFarm && (settingsIsSaving || isUpdatingData)) {
+        document.getElementById('farmSelect').value = currentFarm.id;
+        alert('Wait for the current save or update to finish before switching farms.');
+        return;
+      }
+      if (!force && currentFarm && (isDirty || isUpdateUnsaved || isForecastDirty)) {
+        if (!window.confirm('Discard unsaved changes and switch farms?')) {
+          document.getElementById('farmSelect').value = currentFarm.id;
+          return;
+        }
+      }
+      currentFarm = farm;
+      renderFarmSelect(farm.id);
+      try {
+        localStorage.setItem('silo_active_farm', farm.id);
+      } catch (error) {
+        console.warn('Unable to remember the selected farm in this browser.', error);
+      }
+      farmData = {};
+      placementDates = {};
+      customRemarks = {};
+      lastSavedDateVal = '';
+      lastSavedTimeVal = '';
+      lastUpdateDateVal = '';
+      lastUpdateTimeVal = '';
+      lastUpdateTimestampMs = null;
+      isUpdateUnsaved = false;
+      isDirty = false;
+      isForecastDirty = false;
+      settingsData = null;
+      settingsIsLoaded = false;
+      settingsLoadError = '';
+      activeFilter = 'FH';
+      activeStatusFilter = '';
+      document.getElementById('houseSearch').value = '';
+      const today = getPSTDateAndTimeString();
+      document.getElementById('recordDate').value = today.dateStr;
+      document.getElementById('recordTime').value = today.timeStr;
+      loadLocalPlacementBackup();
+      document.getElementById('forecastBrandName').textContent = farm.name;
+      updateSyncBadge('LOADING…', 'syncing');
+      await loadSettings();
+      if (!currentFarm || currentFarm.id !== farm.id) return;
+      if (!settingsIsLoaded) {
+        updateSyncBadge('SETTINGS ERROR', 'unsaved');
+        return;
+      }
+      const configuredHouses = getConfiguredHouseIds();
+      const hasFhHouses = configuredHouses.some(function(houseId) { return houseId.toUpperCase().startsWith('FH'); });
+      const hasChHouses = configuredHouses.some(function(houseId) { return houseId.toUpperCase().startsWith('CH'); });
+      activeFilter = hasFhHouses && hasChHouses ? 'ALL' : hasFhHouses ? 'FH' : hasChHouses ? 'CH' : 'FH';
+      setFilter(activeFilter);
+      syncConfiguredFarmData();
+      fetchFromCloud();
+    }
+
+    function handleFarmSelect(farmId) {
+      if (farmId === '__add_farm__') {
+        document.getElementById('farmSelect').value = currentFarm ? currentFarm.id : '';
+        if (settingsIsSaving || isUpdatingData) {
+          alert('Wait for the current save or update to finish before adding another farm.');
+          return;
+        }
+        if (isDirty || isUpdateUnsaved || isForecastDirty) {
+          alert("Save the current farm's changes before adding another farm.");
+          return;
+        }
+        openFarmSetup();
+        return;
+      }
+      const farm = farms.find(function(item) { return item.id === farmId; });
+      if (farm) activateFarm(farm, false);
+    }
+
+    function openFarmSetup() {
+      if (isCreatingFarm) return;
+      document.getElementById('farmSetupError').hidden = true;
+      document.getElementById('farmSetupError').textContent = '';
+      document.getElementById('newFarmName').value = '';
+      document.getElementById('newFarmChCount').value = '0';
+      document.getElementById('newFarmFhCount').value = '0';
+      updateFarmHousePreview();
+      document.getElementById('farmSetupOverlay').style.display = 'flex';
+      document.getElementById('newFarmName').focus();
+    }
+
+    function closeFarmSetup() {
+      if (isCreatingFarm) return;
+      document.getElementById('farmSetupOverlay').style.display = 'none';
+    }
+
+    function updateFarmHousePreview() {
+      const chCount = Number(document.getElementById('newFarmChCount').value);
+      const fhCount = Number(document.getElementById('newFarmFhCount').value);
+      const total = chCount + fhCount;
+      const preview = document.getElementById('farmHousePreview');
+      if (!Number.isInteger(chCount) || !Number.isInteger(fhCount) ||
+          chCount < 0 || fhCount < 0 || chCount > 50 || fhCount > 50 || total > 50) {
+        preview.textContent = 'Choose between 0 and 50 houses of each type (50 total maximum).';
+      } else if (!total) {
+        preview.textContent = 'Add at least one house to continue.';
+      } else {
+        preview.textContent = `${total} ${total === 1 ? 'house' : 'houses'} will be created: ${chCount} CH and ${fhCount} FH.`;
+      }
+    }
+
+    async function createFarmFromSetup(event) {
+      event.preventDefault();
+      if (isCreatingFarm) return;
+      const name = document.getElementById('newFarmName').value.trim();
+      const chCount = Number(document.getElementById('newFarmChCount').value);
+      const fhCount = Number(document.getElementById('newFarmFhCount').value);
+      const total = chCount + fhCount;
+      const errorEl = document.getElementById('farmSetupError');
+      if (!name || name.length > 80 || !Number.isInteger(chCount) || !Number.isInteger(fhCount) ||
+          chCount < 0 || fhCount < 0 || chCount > 50 || fhCount > 50 || total < 1 || total > 50) {
+        errorEl.textContent = 'Enter a farm name and choose at least one house (up to 50 total).';
+        errorEl.hidden = false;
+        return;
+      }
+      const nameExists = farms.some(function(farm) {
+        return farm.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase();
+      });
+      if (nameExists) {
+        errorEl.textContent = 'A farm with this name already exists. Choose a different name.';
+        errorEl.hidden = false;
+        return;
+      }
+      const houses = [];
+      ['CH', 'FH'].forEach(function(type) {
+        const count = type === 'CH' ? chCount : fhCount;
+        for (let number = 1; number <= count; number++) houses.push({ id: `${type}${number}` });
+      });
+      const button = document.getElementById('createFarmButton');
+      isCreatingFarm = true;
+      button.disabled = true;
+      button.textContent = 'Creating your farm…';
+      errorEl.hidden = true;
+      const settings = {
+        defaultLengthUnit: 'm',
+        houses: houses,
+        silos: [],
+        feeds: ['BSC', 'BSP', 'CBC', 'BFP'].map(function(id) { return { id: id, size: 0 }; })
+      };
+      try {
+        const response = await fetch('/api/farms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, settings: settings })
+        });
+        const result = await response.json();
+        if (!response.ok || result.error || !result.farm || !result.farm.id) {
+          throw new Error(result.error || 'Unable to create the farm.');
+        }
+        farms.push(result.farm);
+        renderFarmSelect(result.farm.id);
+        document.getElementById('farmSetupOverlay').style.display = 'none';
+        await activateFarm(result.farm, true);
+        showPage('settings');
+        showSettingsToast('Farm created. Add and customize its silos in Settings, then return to the tracker.', false);
+      } catch (error) {
+        errorEl.textContent = `Farm could not be created: ${error.message}`;
+        errorEl.hidden = false;
+      } finally {
+        isCreatingFarm = false;
+        button.disabled = false;
+        button.textContent = 'Create farm';
+      }
     }
 
     function createDefaultSettings() {
@@ -1350,9 +1636,11 @@
     }
 
     async function loadSettings() {
+      const requestId = ++settingsLoadRequestId;
+      const requestedFarmId = currentFarm ? currentFarm.id : 'mango-farm';
       settingsLoadError = '';
       try {
-        const response = await fetch('/api/settings');
+        const response = await fetch(`/api/settings?farmId=${encodeURIComponent(requestedFarmId)}`);
         let result;
         try {
           result = await response.json();
@@ -1364,15 +1652,19 @@
         if (!response.ok || result.error) {
           throw new Error(result.error || 'Unable to load settings.');
         }
+        if (requestId !== settingsLoadRequestId || !currentFarm || currentFarm.id !== requestedFarmId) return false;
         settingsData = result.settings
           ? normalizeSettings(result.settings)
           : createDefaultSettings();
         settingsIsLoaded = true;
         renderSettings();
+        return true;
       } catch (error) {
+        if (requestId !== settingsLoadRequestId || !currentFarm || currentFarm.id !== requestedFarmId) return false;
         settingsLoadError = error.message || 'Unable to load settings.';
         showSettingsToast(`Settings could not be loaded: ${error.message}`, true);
         console.error('Error loading settings:', error);
+        return false;
       }
     }
 
@@ -1506,7 +1798,7 @@
             <td>${siloList}</td>
             <td class="settings-actions-cell">
               <button type="button" onclick="editHouse(${houseArgument})">Edit house</button>
-              <button type="button" onclick="deleteHouse(${houseArgument})">Remove</button>
+              <button class="settings-remove-house" type="button" aria-label="Remove house ${escapeSettingsHtml(house.id)} and its assigned silos" onclick="deleteHouse(${houseArgument})">Remove house</button>
             </td>
           </tr>`;
         }).join('');
@@ -1552,7 +1844,7 @@
         const response = await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(nextSettings)
+          body: JSON.stringify({ farmId: currentFarm.id, settings: nextSettings })
         });
         const result = await response.json();
         if (!response.ok || result.error) {
@@ -1964,7 +2256,10 @@
 
     function loadLocalPlacementBackup() {
       try {
-        const stored = localStorage.getItem('silo_placement_dates');
+        const key = currentFarm && currentFarm.id !== 'mango-farm'
+          ? `silo_placement_dates_${currentFarm.id}`
+          : 'silo_placement_dates';
+        const stored = localStorage.getItem(key);
         if (stored) {
           placementDates = JSON.parse(stored);
         }
@@ -1973,7 +2268,10 @@
 
     function saveLocalPlacementBackup() {
       try {
-        localStorage.setItem('silo_placement_dates', JSON.stringify(placementDates));
+        const key = currentFarm && currentFarm.id !== 'mango-farm'
+          ? `silo_placement_dates_${currentFarm.id}`
+          : 'silo_placement_dates';
+        localStorage.setItem(key, JSON.stringify(placementDates));
       } catch(e) { }
     }
 
@@ -2020,12 +2318,13 @@
       document.getElementById('recordDate').value = pst.dateStr;
       document.getElementById('recordTime').value = pst.timeStr;
 
-      loadLocalPlacementBackup();
-
-      loadSettings().then(function() {
-        syncConfiguredFarmData();
-        fetchFromCloud();
-      });
+      loadFarms()
+        .then(function(farm) { return activateFarm(farm, true); })
+        .catch(function(error) {
+          updateSyncBadge('FARM LOAD ERROR', 'unsaved');
+          alert(`Farms could not be loaded: ${error.message}`);
+          console.error('Error loading farms:', error);
+        });
     }
 
     function makePrintableSiloSvg(houseKey, idx) {
@@ -2050,30 +2349,25 @@
 
     function printSiloReading() {
       const pages = [];
-      const pageHouseNumbers = [
-        [6, 8, 9, 10, 11, 12],
-        [1, 2, 3, 4, 5, 13],
-        [14, 15, 16, 17, 18, 19],
-      ];
-      pageHouseNumbers.forEach(function(houseNumbers) {
-        const houseCards = houseNumbers.map(function(number) {
-          const houseKey = `FH${number}`;
-          const silos = [0, 1].map(function(siloIndex) {
-            const silo = farmData[houseKey][siloIndex];
+      const houseIds = getConfiguredHouseIds();
+      for (let pageIndex = 0; pageIndex < houseIds.length; pageIndex += 6) {
+        const pageHouseIds = houseIds.slice(pageIndex, pageIndex + 6);
+        const houseCards = pageHouseIds.map(function(houseKey) {
+          const silos = (farmData[houseKey] || []).map(function(silo, siloIndex) {
             return `<div class="silo-print-unit">
               ${makePrintableSiloSvg(houseKey, siloIndex)}
-              <span class="silo-print-label">Silo${siloIndex + 1}</span>
+              <span class="silo-print-label">${escapeSettingsHtml(silo.name)}</span>
               <span class="silo-print-capacity">${silo.maxCap.toLocaleString('en-US', { maximumFractionDigits: 1 })} kg</span>
             </div>`;
           }).join('');
           return `<section class="silo-print-house">
-            <h2>${houseKey}</h2>
+            <h2>${escapeSettingsHtml(houseKey)}</h2>
             <div class="silo-print-pair">${silos}</div>
           </section>`;
         }).join('');
         pages.push(`<article class="silo-print-page">
           <header class="silo-print-heading">
-            <strong>MANGO FARM 162nd GROW</strong>
+            <strong>${escapeSettingsHtml(currentFarm ? currentFarm.name : 'Mango Farm')}</strong>
             <span>Silo Reading Report</span>
             <div class="silo-print-meta">
               <span>Date:<i></i></span>
@@ -2082,7 +2376,7 @@
           </header>
           <div class="silo-print-grid">${houseCards}</div>
         </article>`);
-      });
+      }
       document.getElementById('siloPrintPages').innerHTML = pages.join('');
       document.getElementById('siloPrintPreviewPages').innerHTML = pages.join('');
       document.getElementById('siloPrintPreviewModal').style.display = 'flex';
@@ -2649,10 +2943,16 @@
         }
       });
 
+      if (!payload.length) {
+        updateSyncBadge('SETUP NEEDED', 'unsaved');
+        alert('Add at least one silo in Settings before saving readings for this farm.');
+        return Promise.resolve(false);
+      }
+
       return fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ farmId: currentFarm.id, readings: payload })
       })
         .then(async function(response) {
           const result = await response.json();
@@ -2820,9 +3120,12 @@
     }
 
     function fetchFromCloud(callback) {
-      fetch('/api/state')
+      const requestId = ++stateLoadRequestId;
+      const requestedFarmId = currentFarm ? currentFarm.id : 'mango-farm';
+      fetch(`/api/state?farmId=${encodeURIComponent(requestedFarmId)}`)
         .then(async function(response) {
           const state = await response.json();
+          if (requestId !== stateLoadRequestId || !currentFarm || currentFarm.id !== requestedFarmId) return;
           if (!response.ok || (state && state.error)) {
             throw new Error(state && state.error ? state.error : 'Unable to load tracker data.');
           }
@@ -2887,6 +3190,7 @@
           if (callback) callback();
         })
         .catch(function(err) {
+          if (requestId !== stateLoadRequestId || !currentFarm || currentFarm.id !== requestedFarmId) return;
           updateSyncBadge("SYNC ERROR", "unsaved");
           renderHouses();
           if (callback) callback();
@@ -2943,7 +3247,8 @@
         return trackedSilo && silo.id === trackedSilo.settingsId;
       });
       const houseNumber = Number(houseKey.replace('FH', ''));
-      const isDefaultFhSilo = /^FH\d+$/.test(houseKey) &&
+      const isDefaultFhSilo = currentFarm && currentFarm.id === 'mango-farm' &&
+        /^FH\d+$/.test(houseKey) &&
         allHouseNumbers.includes(houseNumber) &&
         /^Silo[12]$/.test(trackedSilo && trackedSilo.name);
       if (configuredSilo && !isDefaultFhSilo) {
@@ -3668,7 +3973,7 @@
       document.getElementById('forecastSaveStatus').innerText = 'Loading forecast...';
       renderForecastTable();
       try {
-        const response = await fetch(`/api/forecast?weekStart=${encodeURIComponent(weekStart)}`);
+        const response = await fetch(`${farmApiUrl('/api/forecast')}&weekStart=${encodeURIComponent(weekStart)}`);
         const state = await response.json();
         if (requestId !== forecastLoadRequestId) return;
         if (!response.ok || state.error) {
@@ -3741,6 +4046,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            farmId: currentFarm.id,
             weekStart,
             rows,
             notes: document.getElementById('forecastNotes').value
@@ -3850,6 +4156,8 @@
     });
 
     function showSummaryTable() {
+      document.getElementById('modalTitle').textContent =
+        `${(currentFarm ? currentFarm.name : 'Mango Farm').toLocaleUpperCase()} HOUSE SUMMARY REPORT`;
       document.getElementById('modalRecordDate').value = document.getElementById('recordDate').value;
       document.getElementById('modalRecordTime').value = document.getElementById('recordTime').value;
 

@@ -8,7 +8,10 @@ import {
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
-      const forecast = await fetchFeedForecast(String(req.query.weekStart || ''));
+      const forecast = await fetchFeedForecast(
+        String(req.query.weekStart || ''),
+        String(req.query.farmId || 'mango-farm')
+      );
       return res.status(200).json(forecast);
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) {

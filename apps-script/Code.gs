@@ -2,6 +2,9 @@ const SPREADSHEET_ID = '1Tq4-mxOc9JF6PIZCOBglV0jUCM-wCPLbJPvRcfMVjTU';
 const READINGS_SHEET = 'Readings';
 const FORECAST_SHEET = 'FeedForecasts';
 const SETTINGS_SHEET = 'SiloSettings';
+const FARMS_SHEET = 'Farms';
+const DEFAULT_FARM_ID = 'mango-farm';
+const SETTINGS_HEADERS = ['FarmId', 'FarmName', 'SettingsJSON'];
 const READINGS_HEADERS = [
   'Timestamp',
   'Date',
@@ -15,6 +18,7 @@ const READINGS_HEADERS = [
   'PlacementDate',
   'CustomRemark',
   'PointsJSON',
+  'FarmId',
 ];
 const FORECAST_HEADERS = [
   'Timestamp',
@@ -26,6 +30,7 @@ const FORECAST_HEADERS = [
   'Notes',
   'RowNumber',
   'Unit',
+  'FarmId',
 ];
 const FORECAST_FEED_TYPES = ['BSC', 'BSP', 'CBC', 'BFP'];
 const FORECAST_UNITS = ['trucks', 'bags'];
@@ -43,25 +48,32 @@ function doPost(event) {
       return jsonOutput_({ error: 'Unauthorized request.' });
     }
 
+    ensureFarmStore_();
     let result;
     switch (request.action) {
+      case 'fetchFarms':
+        result = fetchFarms_();
+        break;
+      case 'createFarm':
+        result = createFarm_(request.payload || {});
+        break;
       case 'saveReadings':
-        result = saveReadings_(request.payload);
+        result = saveReadings_(request.payload, request.farmId);
         break;
       case 'fetchLatestState':
-        result = fetchLatestState_();
+        result = fetchLatestState_(request.farmId);
         break;
       case 'fetchSettings':
-        result = fetchSettings_();
+        result = fetchSettings_(request.farmId);
         break;
       case 'saveSettings':
-        result = saveSettings_(request.payload);
+        result = saveSettings_(request.payload, request.farmId);
         break;
       case 'saveFeedForecast':
-        result = saveFeedForecast_(request.payload);
+        result = saveFeedForecast_(request.payload, request.farmId);
         break;
       case 'fetchFeedForecast':
-        result = fetchFeedForecast_(request.weekStart);
+        result = fetchFeedForecast_(request.weekStart, request.farmId);
         break;
       default:
         return jsonOutput_({ error: 'Unknown action.' });
@@ -83,8 +95,106 @@ function getSheet_(name, headers) {
   const sheet = spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(headers);
+  } else {
+    const existingHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
+    if (existingHeaders.length < headers.length) {
+      sheet.getRange(1, existingHeaders.length + 1, 1, headers.length - existingHeaders.length)
+        .setValues([headers.slice(existingHeaders.length)]);
+    }
   }
   return sheet;
+}
+
+function getSettingsSheet_() {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(SETTINGS_SHEET) || spreadsheet.insertSheet(SETTINGS_SHEET);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(SETTINGS_HEADERS);
+    return sheet;
+  }
+  const firstHeader = String(sheet.getRange(1, 1).getValue() || '');
+  if (firstHeader === 'SettingsJSON') {
+    const oldSettings = sheet.getLastRow() > 1 ? sheet.getRange(2, 1).getValue() : '';
+    sheet.getRange(1, 1, 1, SETTINGS_HEADERS.length).setValues([SETTINGS_HEADERS]);
+    if (oldSettings) {
+      sheet.getRange(2, 1, 1, SETTINGS_HEADERS.length)
+        .setValues([[DEFAULT_FARM_ID, 'Mango Farm', String(oldSettings)]]);
+    }
+    return sheet;
+  }
+  if (firstHeader !== SETTINGS_HEADERS[0]) {
+    throw new Error('The SiloSettings sheet has an unrecognized header.');
+  }
+  if (sheet.getLastColumn() < SETTINGS_HEADERS.length) {
+    const missingHeaders = SETTINGS_HEADERS.slice(sheet.getLastColumn());
+    sheet.getRange(1, sheet.getLastColumn() + 1, 1, missingHeaders.length)
+      .setValues([missingHeaders]);
+  }
+  return sheet;
+}
+
+function ensureFarmStore_() {
+  const sheet = getSheet_(FARMS_SHEET, ['FarmId', 'Name', 'CreatedAt']);
+  const rows = sheet.getLastRow() > 1
+    ? sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).getValues()
+    : [];
+  if (!rows.some(function(row) { return String(row[0]) === DEFAULT_FARM_ID; })) {
+    sheet.appendRow([DEFAULT_FARM_ID, 'Mango Farm', new Date()]);
+  }
+  getSettingsSheet_();
+  getSheet_(READINGS_SHEET, READINGS_HEADERS);
+  getSheet_(FORECAST_SHEET, FORECAST_HEADERS);
+}
+
+function normalizeFarmId_(farmId) {
+  const value = farmId ? String(farmId) : DEFAULT_FARM_ID;
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(value)) throw new Error('Choose a valid farm.');
+  const farms = getSheet_(FARMS_SHEET, ['FarmId', 'Name', 'CreatedAt']);
+  const rows = farms.getLastRow() > 1
+    ? farms.getRange(2, 1, farms.getLastRow() - 1, 3).getValues()
+    : [];
+  if (!rows.some(function(row) { return String(row[0]) === value; })) {
+    throw new Error('The selected farm does not exist.');
+  }
+  return value;
+}
+
+function fetchFarms_() {
+  const sheet = getSheet_(FARMS_SHEET, ['FarmId', 'Name', 'CreatedAt']);
+  const farms = sheet.getLastRow() > 1
+    ? sheet.getRange(2, 1, sheet.getLastRow() - 1, 3).getValues().map(function(row) {
+      return {
+        id: String(row[0] || ''),
+        name: String(row[1] || ''),
+        createdAt: row[2] instanceof Date ? row[2].toISOString() : String(row[2] || ''),
+      };
+    }).filter(function(farm) { return farm.id && farm.name; })
+    : [];
+  return { farms: farms, defaultFarmId: DEFAULT_FARM_ID };
+}
+
+function createFarm_(payload) {
+  const name = String(payload.name || '').trim();
+  if (!name || name.length > 80) throw new Error('Farm names must be between 1 and 80 characters.');
+  const farmsSheet = getSheet_(FARMS_SHEET, ['FarmId', 'Name', 'CreatedAt']);
+  const farms = farmsSheet.getLastRow() > 1
+    ? farmsSheet.getRange(2, 1, farmsSheet.getLastRow() - 1, 3).getValues()
+    : [];
+  if (farms.some(function(row) { return String(row[1]).trim().toLowerCase() === name.toLowerCase(); })) {
+    throw new Error('A farm with this name already exists.');
+  }
+  if (!payload.settings || typeof payload.settings !== 'object') {
+    throw new Error('Add the farm houses before continuing.');
+  }
+  const id = Utilities.getUuid();
+  farmsSheet.appendRow([id, literalText_(name), new Date()]);
+  try {
+    const result = saveSettings_(payload.settings, id);
+    return { status: 'SUCCESS', farm: { id: id, name: name }, settings: result.settings };
+  } catch (error) {
+    farmsSheet.deleteRow(farmsSheet.getLastRow());
+    throw error;
+  }
 }
 
 function literalText_(value) {
@@ -92,8 +202,9 @@ function literalText_(value) {
   return /^[=+\-@]/.test(text) ? "'" + text : text;
 }
 
-function saveReadings_(payload) {
-  if (!Array.isArray(payload) || payload.length === 0 || payload.length > 100) {
+function saveReadings_(payload, requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
+  if (!Array.isArray(payload) || payload.length === 0 || payload.length > 1000) {
     throw new Error('Invalid readings payload.');
   }
 
@@ -114,6 +225,7 @@ function saveReadings_(payload) {
       literalText_(item.placementDate),
       literalText_(item.customRemark),
       JSON.stringify(item.points || []),
+      farmId,
     ];
   });
   sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, READINGS_HEADERS.length)
@@ -123,22 +235,29 @@ function saveReadings_(payload) {
   payload.forEach(function(item) {
     if (item.placementDate) placements[String(item.house || '')] = String(item.placementDate);
   });
-  PropertiesService.getScriptProperties().setProperty('PLACEMENT_DATES', JSON.stringify(placements));
+  const placementProperty = farmId === DEFAULT_FARM_ID
+    ? 'PLACEMENT_DATES'
+    : 'PLACEMENT_DATES_' + farmId;
+  PropertiesService.getScriptProperties().setProperty(placementProperty, JSON.stringify(placements));
   return { status: 'SUCCESS' };
 }
 
-function fetchLatestState_() {
+function fetchLatestState_(requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
   const properties = PropertiesService.getScriptProperties();
   let placementDates = {};
   try {
-    placementDates = JSON.parse(properties.getProperty('PLACEMENT_DATES') || '{}');
+    const placementProperty = farmId === DEFAULT_FARM_ID
+      ? 'PLACEMENT_DATES'
+      : 'PLACEMENT_DATES_' + farmId;
+    placementDates = JSON.parse(properties.getProperty(placementProperty) || '{}');
   } catch (error) {
     console.error('Could not parse stored placement dates.');
   }
 
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = spreadsheet.getSheetByName(READINGS_SHEET);
-  const savedSettings = fetchSettings_().settings;
+  const savedSettings = fetchSettings_(farmId).settings;
   const configuredSilos = {};
   if (savedSettings && Array.isArray(savedSettings.silos)) {
     savedSettings.silos.forEach(function(silo) {
@@ -161,12 +280,14 @@ function fetchLatestState_() {
     const startRow = Math.max(2, lastRowNumber - 4999);
     const data = sheet.getRange(startRow, 1, lastRowNumber - startRow + 1, READINGS_HEADERS.length)
       .getValues();
-    const lastRow = data[data.length - 1];
-    lastSavedDate = String(lastRow[1] || '');
-    lastSavedTime = String(lastRow[2] || '');
-
     for (let i = data.length - 1; i >= 0; i--) {
       const row = data[i];
+      const rowFarmId = String(row[12] || DEFAULT_FARM_ID);
+      if (rowFarmId !== farmId) continue;
+      if (!lastSavedDate) {
+        lastSavedDate = String(row[1] || '');
+        lastSavedTime = String(row[2] || '');
+      }
       const house = String(row[3] || '');
       const siloName = String(row[4] || '');
       const kg = Number(row[5]) || 0;
@@ -228,20 +349,25 @@ function fetchLatestState_() {
   };
 }
 
-function fetchSettings_() {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SETTINGS_SHEET);
-  if (!sheet || sheet.getLastRow() < 2) return { settings: null };
-  const rawSettings = sheet.getRange(2, 1).getValue();
-  if (!rawSettings) return { settings: null };
+function fetchSettings_(requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
+  const sheet = getSettingsSheet_();
+  if (sheet.getLastRow() < 2) return { settings: null };
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, SETTINGS_HEADERS.length).getValues();
+  const row = rows.find(function(entry) {
+    return String(entry[0] || DEFAULT_FARM_ID) === farmId;
+  });
+  if (!row || !row[2]) return { settings: null };
   try {
-    return { settings: JSON.parse(String(rawSettings)) };
+    return { settings: JSON.parse(String(row[2])) };
   } catch (error) {
-    console.error('Could not parse saved silo settings.');
+    console.error('Could not parse saved silo settings for farm ' + farmId + '.');
     throw new Error('Saved silo settings are invalid. Review the SiloSettings sheet.');
   }
 }
 
-function saveSettings_(settings) {
+function saveSettings_(settings, requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
     throw new Error('Settings have an invalid format.');
   }
@@ -321,9 +447,29 @@ function saveSettings_(settings) {
 
   const serializedSettings = JSON.stringify(settings);
   if (serializedSettings.length > 45000) throw new Error('Settings are too large to save.');
-  const sheet = getSheet_(SETTINGS_SHEET, ['SettingsJSON']);
-  sheet.getRange(2, 1).setValue(serializedSettings);
+  const sheet = getSettingsSheet_();
+  const rows = sheet.getLastRow() > 1
+    ? sheet.getRange(2, 1, sheet.getLastRow() - 1, SETTINGS_HEADERS.length).getValues()
+    : [];
+  const existingIndex = rows.findIndex(function(row) {
+    return String(row[0] || DEFAULT_FARM_ID) === farmId;
+  });
+  const settingsRow = [farmId, farmName_(farmId), serializedSettings];
+  if (existingIndex >= 0) {
+    sheet.getRange(existingIndex + 2, 1, 1, SETTINGS_HEADERS.length).setValues([settingsRow]);
+  } else {
+    sheet.appendRow(settingsRow);
+  }
   return { status: 'SUCCESS', settings: settings };
+}
+
+function farmName_(farmId) {
+  const farms = getSheet_(FARMS_SHEET, ['FarmId', 'Name', 'CreatedAt']);
+  const rows = farms.getLastRow() > 1
+    ? farms.getRange(2, 1, farms.getLastRow() - 1, 2).getValues()
+    : [];
+  const farm = rows.find(function(row) { return String(row[0]) === farmId; });
+  return farm ? String(farm[1] || '') : '';
 }
 
 function isValidDateString_(value) {
@@ -347,7 +493,8 @@ function normalizeSheetDate_(value, timezone) {
   return String(value || '').slice(0, 10);
 }
 
-function saveFeedForecast_(payload) {
+function saveFeedForecast_(payload, requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
   if (!payload || typeof payload !== 'object') throw new Error('Invalid forecast.');
   const dates = getForecastDates_(payload.weekStart);
   if (!Array.isArray(payload.rows) || payload.rows.length !== 6) {
@@ -385,6 +532,7 @@ function saveFeedForecast_(payload) {
         literalText_(payload.notes),
         rowIndex + 1,
         literalText_(row.unit),
+        farmId,
       ]);
     });
   });
@@ -395,7 +543,8 @@ function saveFeedForecast_(payload) {
   return { status: 'SUCCESS', savedAt: timestamp.toISOString() };
 }
 
-function fetchFeedForecast_(weekStart) {
+function fetchFeedForecast_(weekStart, requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
   const dates = getForecastDates_(weekStart);
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = spreadsheet.getSheetByName(FORECAST_SHEET);
@@ -409,7 +558,8 @@ function fetchFeedForecast_(weekStart) {
   let latestForecastId = '';
   let savedAt = '';
   for (let i = data.length - 1; i >= 0; i--) {
-    if (normalizeSheetDate_(data[i][2], timezone) === weekStart) {
+    const rowFarmId = String(data[i][9] || DEFAULT_FARM_ID);
+    if (rowFarmId === farmId && normalizeSheetDate_(data[i][2], timezone) === weekStart) {
       latestForecastId = String(data[i][1]);
       savedAt = data[i][0] instanceof Date ? data[i][0].toISOString() : String(data[i][0] || '');
       break;

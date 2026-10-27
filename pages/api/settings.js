@@ -8,7 +8,7 @@ import {
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
-      return res.status(200).json(await fetchSettings());
+      return res.status(200).json(await fetchSettings(String(req.query.farmId || 'mango-farm')));
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) {
         logAppsScriptError('Failed to load settings:', error);
@@ -21,7 +21,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      return res.status(200).json(await saveSettings(req.body || {}));
+      const body = req.body || {};
+      return res.status(200).json(await saveSettings(
+        body.settings || {},
+        String(body.farmId || 'mango-farm')
+      ));
     } catch (error) {
       if (!error.statusCode || error.statusCode >= 500) {
         logAppsScriptError('Failed to save settings:', error);
