@@ -1,5 +1,6 @@
 import {
   createFarm,
+  deleteFarm,
   fetchFarms,
   getAppsScriptErrorMessage,
   logAppsScriptError,
@@ -32,6 +33,20 @@ export default async function handler(req, res) {
     }
   }
 
-  res.setHeader('Allow', 'GET, POST');
+  if (req.method === 'DELETE') {
+    try {
+      const farmId = Array.isArray(req.query.farmId) ? '' : req.query.farmId;
+      return res.status(200).json(await deleteFarm(farmId));
+    } catch (error) {
+      if (!error.statusCode || error.statusCode >= 500) {
+        logAppsScriptError('Failed to delete farm:', error);
+      }
+      return res.status(error.statusCode || 500).json({
+        error: error.statusCode === 400 ? error.message : getAppsScriptErrorMessage(error),
+      });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, POST, DELETE');
   return res.status(405).json({ error: 'Method not allowed.' });
 }

@@ -85,8 +85,11 @@ reads and saves.
 The farm selector in the header switches between separate farm workspaces.
 Choose **Add a farm** to enter a farm name and its CH/FH house counts; the app
 creates those houses and opens Settings so you can add and customize that
-farm's silos. Each farm has its own house/silo settings, readings, placement
-dates, feed sizes, and weekly delivery forecasts.
+farm's silos. The **Delete farm** button appears beside the selector for
+non-default farms. Deleting a farm permanently removes its settings, readings,
+forecasts, and saved placement dates; **Mango Farm** is protected as the
+default farm and cannot be deleted. Each farm has its own house/silo settings,
+readings, placement dates, feed sizes, and weekly delivery forecasts.
 
 The existing setup and historical records stay under **Mango Farm**. On the
 first request after updating Apps Script, the bridge creates a `Farms` tab,

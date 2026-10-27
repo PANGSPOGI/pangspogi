@@ -57,6 +57,9 @@ function doPost(event) {
       case 'createFarm':
         result = createFarm_(request.payload || {});
         break;
+      case 'deleteFarm':
+        result = deleteFarm_(request.farmId);
+        break;
       case 'saveReadings':
         result = saveReadings_(request.payload, request.farmId);
         break;
@@ -195,6 +198,57 @@ function createFarm_(payload) {
     farmsSheet.deleteRow(farmsSheet.getLastRow());
     throw error;
   }
+}
+
+function deleteFarm_(requestedFarmId) {
+  const farmId = normalizeFarmId_(requestedFarmId);
+  if (farmId === DEFAULT_FARM_ID) {
+    throw new Error('The default Mango Farm cannot be deleted.');
+  }
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Another farm operation is in progress. Try again.');
+  try {
+    deleteFarmRows_(SETTINGS_SHEET, 'FarmId', farmId, true);
+    deleteFarmRows_(READINGS_SHEET, 'FarmId', farmId, true);
+    deleteFarmRows_(FORECAST_SHEET, 'FarmId', farmId, true);
+    PropertiesService.getScriptProperties().deleteProperty('PLACEMENT_DATES_' + farmId);
+    deleteFarmRows_(FARMS_SHEET, 'FarmId', farmId, false);
+  } finally {
+    lock.releaseLock();
+  }
+  return { status: 'SUCCESS', deletedFarmId: farmId };
+}
+
+function deleteFarmRows_(sheetName, farmIdHeader, farmId, assignBlankToDefault) {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet || sheet.getLastRow() <= 1) return;
+
+  const lastColumn = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0].map(String);
+  const farmIdColumn = headers.indexOf(farmIdHeader);
+  if (farmIdColumn < 0) throw new Error(sheetName + ' is missing its FarmId column.');
+
+  const lastRow = sheet.getLastRow();
+  const rows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
+  const ranges = [];
+  let rangeStart = 0;
+  let rangeCount = 0;
+  for (let index = rows.length - 1; index >= 0; index--) {
+    const storedFarmId = String(rows[index][farmIdColumn] || (assignBlankToDefault ? DEFAULT_FARM_ID : ''));
+    if (storedFarmId === farmId) {
+      rangeStart = index + 2;
+      rangeCount++;
+    } else if (rangeCount) {
+      ranges.push({ start: rangeStart, count: rangeCount });
+      rangeCount = 0;
+    }
+  }
+  if (rangeCount) ranges.push({ start: rangeStart, count: rangeCount });
+  ranges.forEach(function(range) {
+    sheet.deleteRows(range.start, range.count);
+  });
 }
 
 function literalText_(value) {

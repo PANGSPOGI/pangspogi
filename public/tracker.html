@@ -414,6 +414,9 @@
     .farm-picker select { max-width: 220px; min-height: 34px; padding: 5px 30px 5px 10px; border: 1px solid rgba(255,255,255,.28); border-radius: 9px; background: rgba(255,255,255,.1); color: #fff; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
     .farm-picker select option { background: #fff; color: #17251f; }
     .farm-picker select:focus-visible { outline: 2px solid #a9d8b8; outline-offset: 2px; }
+    .farm-delete-button { min-height: 34px; padding: 5px 9px; border: 1px solid rgba(255,210,205,.55); border-radius: 9px; background: rgba(153,45,38,.22); color: #fff; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .farm-delete-button:hover { background: rgba(153,45,38,.48); }
+    .farm-delete-button:focus-visible { outline: 2px solid #ffd1cc; outline-offset: 2px; }
     .farm-setup-box { position: relative; display: block; width: min(540px, calc(100vw - 28px)); max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow: auto; padding: 0; background: var(--surface); color: var(--ink); text-align: left; }
     .farm-setup-close { position: absolute; z-index: 1; top: 14px; right: 14px; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; font-size: 20px; cursor: pointer; }
     .farm-setup-hero { position: relative; overflow: hidden; padding: 30px 34px 22px; background: radial-gradient(circle at 90% 15%, rgba(196,225,164,.28), transparent 31%), linear-gradient(135deg, #19382b, #286447 68%, #39835f); color: #fff; }
@@ -449,6 +452,7 @@
       .farm-picker { margin-left: auto; }
       .farm-picker-label { display: none; }
       .farm-picker select { max-width: min(45vw, 190px); min-height: 32px; font-size: 11px; }
+      .farm-delete-button { min-height: 32px; padding: 5px 7px; font-size: 10px; }
       .sync-indicator { padding: 5px 8px; font-size: 9px; }
       .main-content { padding: 18px 12px 112px; }
       .dashboard-intro { margin-bottom: 15px; }
@@ -690,6 +694,7 @@
           <option value="">Loading farms…</option>
         </select>
       </label>
+      <button class="farm-delete-button" id="deleteFarmButton" type="button" onclick="deleteCurrentFarm()" hidden>Delete farm</button>
     </div>
     <div class="header-actions">
       <nav class="primary-nav" aria-label="Main navigation">
@@ -1187,6 +1192,7 @@
     let farms = [];
     let currentFarm = null;
     let isCreatingFarm = false;
+    let isDeletingFarm = false;
     let settingsLoadRequestId = 0;
     let stateLoadRequestId = 0;
     let settingsLoadError = '';
@@ -1249,6 +1255,13 @@
       }).join('') + '<option value="__add_farm__">＋ Add a farm…</option>';
       select.disabled = false;
       select.value = selectedFarmId || '';
+      const deleteButton = document.getElementById('deleteFarmButton');
+      deleteButton.hidden = !selectedFarmId || selectedFarmId === 'mango-farm';
+      deleteButton.disabled = isCreatingFarm || isDeletingFarm;
+      const selectedFarm = farms.find(function(farm) { return farm.id === selectedFarmId; });
+      deleteButton.setAttribute('aria-label', selectedFarm && selectedFarmId !== 'mango-farm'
+        ? `Delete farm ${selectedFarm.name}`
+        : 'Delete farm');
     }
 
     async function activateFarm(farm, force) {
@@ -1310,6 +1323,11 @@
     }
 
     function handleFarmSelect(farmId) {
+      if (isDeletingFarm) {
+        document.getElementById('farmSelect').value = currentFarm ? currentFarm.id : '';
+        alert('Wait for the farm deletion to finish before switching farms.');
+        return;
+      }
       if (farmId === '__add_farm__') {
         document.getElementById('farmSelect').value = currentFarm ? currentFarm.id : '';
         if (settingsIsSaving || isUpdatingData) {
@@ -1325,6 +1343,55 @@
       }
       const farm = farms.find(function(item) { return item.id === farmId; });
       if (farm) activateFarm(farm, false);
+    }
+
+    async function deleteCurrentFarm() {
+      if (!currentFarm || currentFarm.id === 'mango-farm' || isDeletingFarm) return;
+      if (settingsIsSaving || isUpdatingData || isCreatingFarm) {
+        alert('Wait for the current farm operation to finish before deleting a farm.');
+        return;
+      }
+      if (isDirty || isUpdateUnsaved || isForecastDirty) {
+        alert('Save the current farm’s changes before deleting it.');
+        return;
+      }
+      const farmToDelete = currentFarm;
+      const confirmed = window.confirm(
+        `Permanently delete "${farmToDelete.name}" and all of its houses, silos, readings, and delivery forecasts? This cannot be undone.`
+      );
+      if (!confirmed) return;
+
+      const button = document.getElementById('deleteFarmButton');
+      isDeletingFarm = true;
+      button.disabled = true;
+      button.textContent = 'Deleting…';
+      try {
+        const response = await fetch(`/api/farms?farmId=${encodeURIComponent(farmToDelete.id)}`, {
+          method: 'DELETE'
+        });
+        const result = await response.json();
+        if (!response.ok || result.error) {
+          throw new Error(result.error || 'Unable to delete the farm.');
+        }
+
+        farms = farms.filter(function(farm) { return farm.id !== farmToDelete.id; });
+        const nextFarm = farms.find(function(farm) { return farm.id === 'mango-farm'; }) || farms[0];
+        if (!nextFarm) throw new Error('The default farm is missing. Refresh the tracker and try again.');
+        try {
+          localStorage.removeItem(`silo_placement_dates_${farmToDelete.id}`);
+          localStorage.setItem('silo_active_farm', nextFarm.id);
+        } catch (error) {
+          console.warn('Unable to update the selected farm in this browser.', error);
+        }
+        await activateFarm(nextFarm, true);
+        showSettingsToast(`Farm "${farmToDelete.name}" and its data were deleted.`, false);
+      } catch (error) {
+        alert(`Farm could not be deleted: ${error.message}`);
+      } finally {
+        isDeletingFarm = false;
+        button.textContent = 'Delete farm';
+        renderFarmSelect(currentFarm ? currentFarm.id : '');
+      }
     }
 
     function openFarmSetup() {
