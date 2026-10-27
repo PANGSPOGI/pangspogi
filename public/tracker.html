@@ -75,58 +75,67 @@
     .modal-box h3 { margin-bottom: 10px; font-size: 22px; font-weight: 900; letter-spacing: 0.5px; }
 
     .report-capture-area { background: #ffffff; padding: 18px; border-radius: 6px; border: 2px solid #000; }
-    .forecast-box { max-width: 1160px; height: min(100vh, 820px); overflow: hidden; }
-    .forecast-report { padding: 18px; border: 2px solid #000; background: #fff; }
-    .forecast-brand { margin: 0 auto 8px; max-width: 620px; padding: 4px; background: #365c28; color: #fff; font-size: 16px; font-weight: 800; }
-    .forecast-brand-line { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 10px; }
-    .forecast-logo { width: 135px; color: #ed1c24; font-family: Georgia, serif; font-size: 30px; font-style: italic; font-weight: 900; }
-    .forecast-week { display: flex; justify-content: center; align-items: center; gap: 12px; margin: 12px 0 18px; font-weight: 800; }
-    .forecast-week input { padding: 5px; border: 1px solid #000; border-radius: 3px; font-weight: 700; }
-    .forecast-table-wrap { width: 100%; overflow-x: auto; }
-    .forecast-table { width: 100%; min-width: 980px; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
-    .forecast-table th, .forecast-table td { border: 1.5px solid #000; padding: 6px 4px; text-align: center; font-weight: 800; }
-    .forecast-table thead tr:first-child th { background: #c7dfb5; }
+    .forecast-box { display: flex; flex-direction: column; gap: 10px; width: min(1160px, 96vw); height: min(90vh, 850px); height: min(90dvh, 850px); max-height: 92vh; max-height: 92dvh; padding: 16px; overflow: hidden; text-align: left; }
+    .forecast-report { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 22px; border: 1px solid #e3eae5; border-radius: 12px; background: #fff; color: #17251f; }
+    .forecast-brand { margin: 0 auto 8px; max-width: 620px; padding: 5px 10px; border-radius: 4px; background: #365c28; color: #fff; font-size: 13px; font-weight: 800; letter-spacing: .5px; }
+    .forecast-brand-line { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 8px; }
+    .forecast-logo { width: 135px; color: #ed1c24; font-family: Georgia, serif; font-size: 28px; font-style: italic; font-weight: 900; }
+    .forecast-report > h3 { margin-bottom: 14px; color: #17251f; font-size: 20px; font-weight: 850; letter-spacing: .3px; }
+    .forecast-week { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 16px; color: #52645a; font-size: 13px; font-weight: 750; }
+    .forecast-week input { min-height: 38px; padding: 7px 10px; border: 1px solid #cad8ce; border-radius: 8px; background: #fff; color: #17251f; font: inherit; font-weight: 700; }
+    .forecast-week span { color: #17251f; }
+    .forecast-table-wrap { width: 100%; overflow-x: auto; border: 1px solid #dfe7e1; border-radius: 9px; overscroll-behavior-x: contain; }
+    .forecast-table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 12px; }
+    .forecast-table th, .forecast-table td { padding: 7px 5px; border-right: 1px solid #e0e7e2; border-bottom: 1px solid #e0e7e2; text-align: center; font-weight: 750; }
+    .forecast-table tr > :last-child { border-right: 0; }
+    .forecast-table tfoot tr:last-child > * { border-bottom: 0; }
+    .forecast-table thead tr:first-child th { background: #e7f2e9; color: #234b34; }
+    .forecast-table thead tr:nth-child(2) th { background: #f7faf7; }
     .forecast-table .forecast-type { width: 135px; }
     .forecast-table .forecast-unit { width: 90px; }
-    .forecast-table .forecast-total { width: 80px; background: #dedede; }
-    .forecast-table .forecast-date { display: block; margin-top: 3px; font-size: 11px; font-weight: 600; }
-    .forecast-table input { width: 66px; max-width: 100%; padding: 5px 2px; text-align: center; border: 1px solid #555; border-radius: 3px; font-weight: 800; }
-    .forecast-table select { width: 100%; padding: 5px 2px; border: 1px solid #555; border-radius: 3px; font-weight: 800; }
-    .forecast-notes { display: block; margin-top: 10px; text-align: left; font-weight: 800; }
-    .forecast-notes textarea { display: block; width: 100%; min-height: 48px; margin-top: 4px; padding: 6px; border: 1.5px solid #000; border-radius: 4px; font: inherit; font-weight: 500; resize: vertical; }
-    .forecast-save-status { min-height: 18px; margin-top: 8px; text-align: left; font-size: 12px; font-weight: 700; }
-    .forecast-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .forecast-table .forecast-total { width: 80px; background: #f0f3f1; }
+    .forecast-table .forecast-date { display: block; margin-top: 3px; color: #68776e; font-size: 10px; font-weight: 600; }
+    .forecast-table input, .forecast-table select { min-height: 34px; border: 1px solid #d5ded8; border-radius: 6px; background: #fff; color: #17251f; font: inherit; font-weight: 700; }
+    .forecast-table input { width: 66px; max-width: 100%; padding: 5px 3px; text-align: center; }
+    .forecast-table select { width: 100%; padding: 5px 4px; }
+    .forecast-table input:focus, .forecast-table select:focus, .forecast-notes textarea:focus { outline: 2px solid #72b58c; outline-offset: 1px; }
+    .forecast-notes { display: block; margin-top: 14px; color: #52645a; font-size: 12px; font-weight: 800; text-align: left; }
+    .forecast-notes textarea { display: block; width: 100%; min-height: 64px; margin-top: 6px; padding: 9px 10px; border: 1px solid #cad8ce; border-radius: 8px; background: #fff; color: #17251f; font: inherit; font-size: 12px; font-weight: 500; resize: vertical; }
+    .forecast-scroll-hint { display: none; margin: 7px 2px 0; color: #708078; font-size: 10px; }
+    .forecast-save-status { flex: 0 0 auto; min-height: 18px; margin: 0; color: var(--muted); text-align: left; font-size: 11px; font-weight: 700; }
+    .forecast-actions { position: relative; flex: 0 0 auto; display: flex; justify-content: flex-end; gap: 8px; margin: 0; padding-top: 9px; border-top: 1px solid var(--line); background: var(--surface); }
     @media (max-width: 800px) {
-      .forecast-box { width: 100vw; max-width: none; height: auto; max-height: 100vh; max-height: 100dvh; padding: 6px; border-radius: 0; overflow-y: auto; }
-      .forecast-report { flex: 0 0 auto; min-height: 0; padding: 7px; overflow: hidden; }
-      .forecast-brand-line { gap: 6px; margin-bottom: 3px; }
+      .forecast-box { width: 100vw; max-width: none; height: 100vh; height: 100dvh; max-height: 100vh; max-height: 100dvh; gap: 8px; padding: 12px; border-radius: 0; }
+      .forecast-report { padding: 14px; border-radius: 10px; }
+      .forecast-brand-line { gap: 8px; margin-bottom: 6px; }
       .forecast-logo, .forecast-brand-line > span[aria-hidden="true"] { width: 68px !important; }
-      .forecast-logo { font-size: 20px; }
-      .forecast-brand { margin-bottom: 2px; padding: 3px; font-size: 12px; }
-      .forecast-report > h3 { margin-bottom: 3px; font-size: 15px; }
-      .forecast-week { gap: 6px; margin: 3px 0 5px; font-size: 11px; }
-      .forecast-week input { min-width: 120px; padding: 3px; font-size: 11px; }
+      .forecast-logo { font-size: 21px; }
+      .forecast-brand { margin-bottom: 2px; padding: 4px; font-size: 11px; }
+      .forecast-report > h3 { margin-bottom: 12px; font-size: 16px; }
+      .forecast-week { justify-content: flex-start; gap: 7px; margin-bottom: 12px; font-size: 11px; }
+      .forecast-week input { min-width: 132px; min-height: 36px; padding: 5px 7px; font-size: 11px; }
       .forecast-week span { font-size: 10px; }
-      .forecast-table-wrap { overflow: hidden; }
-      .forecast-table { min-width: 0; font-size: 9px; }
-      .forecast-table th, .forecast-table td { padding: 2px 1px; }
-      .forecast-table tbody td:first-child { width: 90px; }
-      .forecast-table tbody td:nth-child(2) { width: 62px; }
-      .forecast-table .forecast-total { width: 46px; }
-      .forecast-table .forecast-date { margin-top: 1px; font-size: 8px; }
-      .forecast-table input, .forecast-table select { min-width: 0; height: 25px; padding: 2px 0; font-size: 9px; }
-      .forecast-notes { margin-top: 5px; font-size: 11px; }
-      .forecast-notes textarea { min-height: 34px; height: 34px; margin-top: 2px; padding: 4px; font-size: 11px; }
-      .forecast-save-status { flex: 0 0 auto; min-height: 14px; margin-top: 3px; font-size: 10px; }
-      .forecast-actions { flex: 0 0 auto; gap: 5px; margin-top: 3px; }
-      .forecast-actions .btn-lg { padding: 6px 8px; font-size: 10px; }
+      .forecast-table-wrap { overflow-x: auto; }
+      .forecast-table { min-width: 900px; font-size: 10px; }
+      .forecast-table th, .forecast-table td { padding: 5px 4px; }
+      .forecast-table .forecast-type { width: 120px; }
+      .forecast-table .forecast-unit { width: 78px; }
+      .forecast-table .forecast-total { width: 64px; }
+      .forecast-table .forecast-date { margin-top: 2px; font-size: 9px; }
+      .forecast-table input, .forecast-table select { min-height: 32px; padding: 4px; font-size: 10px; }
+      .forecast-table input { width: 58px; }
+      .forecast-scroll-hint { display: block; }
+      .forecast-notes { margin-top: 12px; font-size: 11px; }
+      .forecast-notes textarea { min-height: 58px; margin-top: 5px; padding: 8px; font-size: 11px; }
+      .forecast-save-status { min-height: 16px; font-size: 10px; }
+      .forecast-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding-top: 8px; }
+      .forecast-actions .btn-lg { min-height: 40px; padding: 6px 8px; font-size: 10px; }
     }
     @media (max-width: 480px) {
-      .forecast-table tbody td:first-child { width: 76px; }
-      .forecast-table tbody td:nth-child(2) { width: 54px; }
-      .forecast-table .forecast-total { width: 40px; }
-      .forecast-table th, .forecast-table td { padding-right: 0; padding-left: 0; }
-      .forecast-table input, .forecast-table select { font-size: 8px; }
+      .forecast-box { padding: 9px; }
+      .forecast-report { padding: 11px; }
+      .forecast-brand-line > span[aria-hidden="true"] { width: 50px !important; }
+      .forecast-report > h3 { font-size: 14px; }
       .forecast-actions .btn-lg { padding-right: 5px; padding-left: 5px; font-size: 9px; }
     }
     @media print {
@@ -134,7 +143,8 @@
       body.forecast-printing #forecastModal,
       body.forecast-printing #forecastModal * { visibility: visible !important; }
       body.forecast-printing #forecastModal { display: block !important; position: absolute; inset: 0; background: #fff; }
-      body.forecast-printing #forecastModal .forecast-box { width: 100%; max-width: none; max-height: none; border: 0; overflow: visible; }
+      body.forecast-printing #forecastModal .forecast-box { width: 100%; height: auto; max-width: none; max-height: none; border: 0; overflow: visible; }
+      body.forecast-printing #forecastModal .forecast-report { flex: none; height: auto; max-height: none; overflow: visible; }
       body.forecast-printing .forecast-no-print { display: none !important; }
       body.forecast-printing .forecast-table-wrap { overflow: visible; }
       body.forecast-printing .forecast-table { min-width: 0; font-size: 9px; }
@@ -312,13 +322,13 @@
     .house-search { display: flex; align-items: center; gap: 8px; min-width: 210px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
     .house-search span { color: #829188; font-size: 15px; }
     .house-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); font: inherit; font-size: 12px; }
-    .dashboard-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; }
-    .stat-card { min-height: 92px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); text-align: left; box-shadow: 0 6px 20px rgba(28,54,40,.04); transition: transform .18s, box-shadow .18s, border-color .18s; }
+    .dashboard-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 12px; }
+    .stat-card { min-height: 82px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); text-align: left; box-shadow: 0 6px 20px rgba(28,54,40,.04); transition: transform .18s, box-shadow .18s, border-color .18s; }
     button.stat-card { cursor: pointer; }
     .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: #c4d9cb; }
     .stat-card.active { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green), var(--shadow); }
     .stat-label { display: block; color: var(--muted); font-size: 11px; font-weight: 750; }
-    .stat-value { display: block; margin-top: 8px; color: var(--ink); font-size: 24px; font-weight: 850; letter-spacing: -.5px; }
+    .stat-value { display: block; margin-top: 5px; color: var(--ink); font-size: 22px; font-weight: 850; letter-spacing: -.5px; }
     .stat-note { display: block; margin-top: 3px; color: #85938a; font-size: 10px; }
     .filter-feedback { display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin: 0 2px 8px; color: var(--muted); font-size: 11px; }
     .filter-feedback button { padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--green); font: inherit; font-weight: 800; cursor: pointer; }
@@ -355,8 +365,16 @@
     .btn-add { background: #e5f3eb; color: #187047; border-color: #cce4d5; }
     .btn-sub { background: #fff3e2; color: #9a5c1e; border-color: #f0dfc6; }
     .btn-empty { background: #fce9e7; color: #a83b34; border-color: #f0cfcb; }
-    .global-actions { z-index: 30; margin-top: 24px; padding: 10px; border: 1px solid rgba(219,230,222,.9); border-radius: 15px; background: rgba(255,255,255,.91); box-shadow: 0 10px 34px rgba(29,54,40,.16); backdrop-filter: blur(14px); }
-    .global-actions { position: fixed; left: 50%; bottom: 16px; width: min(calc(100% - 32px), 1100px); margin: 0; transform: translateX(-50%); }
+    .global-actions { position: fixed; z-index: 30; left: 50%; bottom: 16px; display: flex; align-items: center; gap: 9px; width: min(calc(100% - 32px), 660px); margin: 0; padding: 9px; transform: translateX(-50%); border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.96); box-shadow: 0 10px 34px rgba(29,54,40,.16); backdrop-filter: blur(14px); }
+    .primary-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); flex: 1; gap: 8px; }
+    .primary-actions .btn-lg { width: 100%; padding-right: 10px; padding-left: 10px; }
+    .more-actions { position: relative; flex: 0 0 auto; }
+    .more-actions summary { display: flex; min-height: 42px; align-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font-size: 12px; font-weight: 750; cursor: pointer; list-style: none; white-space: nowrap; }
+    .more-actions summary::-webkit-details-marker { display: none; }
+    .more-actions summary::after { margin-left: 8px; content: "+"; color: var(--muted); font-size: 16px; line-height: 1; }
+    .more-actions[open] summary::after { content: "−"; }
+    .more-actions-menu { position: absolute; right: 0; bottom: calc(100% + 10px); display: grid; width: min(250px, calc(100vw - 32px)); gap: 7px; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+    .more-actions-menu .btn-lg { width: 100%; text-align: left; }
     .btn-lg { min-height: 42px; padding: 10px 16px; border: 1px solid transparent; border-radius: 9px; font-size: 12px; transition: transform .16s, box-shadow .16s, background .16s; }
     .btn-lg:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(20,50,34,.13); }
     .btn-update { background: #e4f1e9; color: var(--green-dark); }
@@ -376,9 +394,10 @@
     }
     @media (max-width: 700px) {
       .header { min-height: 62px; padding: 12px 15px; }
+      .header-title { flex: 1 1 100%; }
       .header-title { gap: 7px; font-size: 13px; }
       .sync-indicator { padding: 5px 8px; font-size: 9px; }
-      .main-content { padding: 18px 12px 200px; }
+      .main-content { padding: 18px 12px 112px; }
       .dashboard-intro { margin-bottom: 15px; }
       .dashboard-intro p { font-size: 12px; }
       .top-bar { padding: 12px; border-radius: 13px; }
@@ -390,15 +409,18 @@
       .btn-group { flex: 1; }
       .btn-group-opt { flex: 1; padding: 8px 5px; font-size: 9px; }
       .house-search { flex: 1 1 100%; }
-      .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 13px; }
+      .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
       .stat-card { min-height: 78px; padding: 11px 13px; border-radius: 11px; }
       .stat-value { margin-top: 5px; font-size: 20px; }
       .sheet-grid { grid-template-columns: 1fr; gap: 10px; }
       .house-box { padding: 12px; border-radius: 12px; }
       .silo-unit { width: min(48%, 190px); }
       .canvas-container { height: 170px; }
-      .global-actions { bottom: 7px; gap: 6px; padding: 8px; border-radius: 12px; }
-      .btn-lg { min-height: 38px; padding: 8px 10px; font-size: 10px; }
+      .global-actions { bottom: calc(8px + env(safe-area-inset-bottom)); gap: 6px; width: calc(100% - 20px); padding: 7px; border-radius: 12px; }
+      .primary-actions { gap: 6px; }
+      .primary-actions .btn-lg { min-height: 40px; padding: 7px 3px; font-size: 9px; line-height: 1.15; }
+      .more-actions summary { min-height: 40px; padding: 0 9px; font-size: 10px; }
+      .more-actions-menu .btn-lg { min-height: 40px; font-size: 11px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
@@ -492,8 +514,7 @@
       .filter-group > label:first-child { width: auto; padding-top: 9px; }
       .btn-group { flex: 1 1 calc(100% - 54px); }
       .house-search { flex: 1 1 100%; min-width: 0; }
-      .global-actions { left: 50%; bottom: calc(8px + env(safe-area-inset-bottom)); width: calc(100% - 20px); transform: translateX(-50%); }
-      .global-actions .btn-lg { flex: 1 1 calc(50% - 8px); min-height: 42px; }
+      .global-actions { left: 50%; transform: translateX(-50%); }
       .silo-pair { gap: 6px; }
       .silo-unit { width: calc(50% - 3px); min-width: 0; }
       .canvas-container { width: min(100%, 142px); }
@@ -518,6 +539,12 @@
     .settings-intro { margin: 4px 0 22px; }
     .settings-intro h1 { color: var(--ink); font-size: clamp(25px, 3vw, 34px); font-weight: 850; }
     .settings-intro p { margin-top: 8px; color: var(--muted); font-size: 14px; }
+    .settings-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .settings-category-select { display: flex; align-items: center; gap: 8px; margin-top: 16px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    .settings-category-select { margin-top: 0; }
+    .settings-category-select select { min-height: 38px; padding: 6px 30px 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; }
+    .settings-category-panel[hidden] { display: none; }
+    .settings-feed-size { width: 140px; min-height: 36px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); font: inherit; }
     .settings-card {
       margin-bottom: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 15px;
       background: var(--surface); box-shadow: var(--shadow);
@@ -546,6 +573,10 @@
     .settings-table th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .45px; }
     .settings-table td { color: var(--ink); }
     .settings-table .settings-actions-cell { text-align: right; }
+    .settings-silo-list { display: grid; gap: 7px; }
+    .settings-silo-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .settings-silo-item + .settings-silo-item { padding-top: 7px; border-top: 1px solid var(--line); }
+    .settings-silo-actions { display: flex; flex: 0 0 auto; gap: 5px; }
     .settings-table button {
       padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
       background: #fff; color: var(--green-dark); font: inherit; font-size: 11px; font-weight: 750; cursor: pointer;
@@ -623,8 +654,8 @@
       <div class="filter-group">
         <label>Houses</label>
         <div class="btn-group">
-          <button class="btn-group-opt active" id="btn_1_12" onclick="setFilter('1-12')">FH 1 to 12</button>
-          <button class="btn-group-opt" id="btn_13_19" onclick="setFilter('13-19')">FH 13 to 19</button>
+          <button class="btn-group-opt active" id="btn_fh" onclick="setFilter('FH')">FH Houses</button>
+          <button class="btn-group-opt" id="btn_ch" onclick="setFilter('CH')">CH Houses</button>
           <button class="btn-group-opt" id="btn_all" onclick="setFilter('ALL')">All Houses</button>
         </div>
         <label class="house-search" for="houseSearch">
@@ -665,13 +696,20 @@
     <div class="sheet-grid" id="housesContainer"></div>
 
     <div class="global-actions">
-      <button class="btn-lg btn-update" id="btnUpdate" onclick="manualUpdateData()">🔄 Update Data</button>
-      <button class="btn-lg btn-clear" onclick="clearVisibleSilos()">Reset Visible Silos</button>
-      <button class="btn-lg btn-clear" onclick="showSummaryTable()">House Summary</button>
-      <button class="btn-lg btn-forecast" onclick="openForecast()">Delivery Forecast</button>
-      <button class="btn-lg btn-clear" onclick="printSiloReading()">Print Silo Reading</button>
-      <button class="btn-lg btn-update" onclick="openSiloReadingUpload()">Upload Silo Photo</button>
-      <button class="btn-lg btn-primary" id="saveBtn" onclick="manualSave()">💾 Save Now</button>
+      <div class="primary-actions">
+        <button class="btn-lg btn-update" id="btnUpdate" onclick="manualUpdateData()">Update Data</button>
+        <button class="btn-lg btn-forecast" onclick="openForecast()">Delivery Forecast</button>
+        <button class="btn-lg btn-primary" id="saveBtn" onclick="manualSave()">Save Now</button>
+      </div>
+      <details class="more-actions">
+        <summary aria-label="More tracker actions">More</summary>
+        <div class="more-actions-menu">
+          <button class="btn-lg btn-clear" onclick="clearVisibleSilos()">Reset Visible Silos</button>
+          <button class="btn-lg btn-clear" onclick="showSummaryTable()">House Summary</button>
+          <button class="btn-lg btn-clear" onclick="printSiloReading()">Print Silo Reading</button>
+          <button class="btn-lg btn-update" onclick="openSiloReadingUpload()">Upload Silo Photo</button>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -680,9 +718,29 @@
       <div class="dashboard-eyebrow">Farm configuration</div>
       <h1>Settings</h1>
       <p>Manage your house and silo register, dimensions, and preferred length unit.</p>
+      <div class="settings-toolbar">
+        <label class="settings-category-select" for="settingsCategory">
+          Manage
+          <select id="settingsCategory" onchange="changeSettingsCategory(this.value)">
+            <option value="silos">Silos</option>
+            <option value="feeds">Feeds</option>
+          </select>
+        </label>
+        <button class="btn-lg btn-clear" id="houseSiloRegisterToggle" type="button" aria-expanded="false" aria-controls="houseSiloRegister" onclick="toggleHouseSiloRegister()">View existing houses &amp; silos</button>
+      </div>
     </div>
 
-    <section class="settings-card" aria-labelledby="defaultUnitHeading">
+    <section class="settings-card" id="houseSiloRegister" aria-labelledby="houseSiloRegisterHeading" hidden>
+      <h2 id="houseSiloRegisterHeading">Existing houses &amp; silos</h2>
+      <div class="settings-table-wrap">
+        <table class="settings-table">
+          <thead><tr><th scope="col">House</th><th scope="col">Assigned silos</th><th scope="col" class="settings-actions-cell">House actions</th></tr></thead>
+          <tbody id="settingsHouseSiloRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="settings-card" id="defaultUnitSettingsCard" aria-labelledby="defaultUnitHeading">
       <h2 id="defaultUnitHeading">Default length unit</h2>
       <p>Used when creating a silo. Existing silo dimensions keep their own saved units.</p>
       <div class="settings-unit-row">
@@ -700,14 +758,22 @@
       </div>
     </section>
 
-    <section class="settings-card" aria-labelledby="housesSettingsHeading">
+    <section class="settings-card" id="houseSettingsCard" aria-labelledby="housesSettingsHeading">
       <h2 id="housesSettingsHeading">Houses</h2>
       <p>Add, rename, and remove houses. Removing a house also removes its assigned silo records.</p>
       <form id="houseSettingsForm" onsubmit="saveHouse(event)" novalidate>
         <div class="settings-form-grid">
           <div class="settings-field">
-            <label for="houseSettingsId">House name or ID</label>
-            <input id="houseSettingsId" maxlength="100" autocomplete="off">
+            <label for="houseSettingsType">House type</label>
+            <select id="houseSettingsType">
+              <option value="FH">FH</option>
+              <option value="CH">CH</option>
+            </select>
+            <span class="settings-field-error"></span>
+          </div>
+          <div class="settings-field">
+            <label for="houseSettingsNumber">House number</label>
+            <input id="houseSettingsNumber" type="number" min="1" max="9999" step="1" inputmode="numeric">
             <span class="settings-field-error" id="houseSettingsIdError"></span>
           </div>
         </div>
@@ -724,7 +790,7 @@
       </div>
     </section>
 
-    <section class="settings-card" aria-labelledby="silosSettingsHeading">
+    <section class="settings-card settings-category-panel" id="siloSettingsCard" aria-labelledby="silosSettingsHeading">
       <h2 id="silosSettingsHeading">Silos</h2>
       <p>All dimensions are stored in meters and volume in cubic meters. Display units can be changed without changing stored values.</p>
       <form id="siloSettingsForm" onsubmit="saveSilo(event)" novalidate>
@@ -779,6 +845,12 @@
             <span class="settings-field-error"></span>
             <div class="settings-volume-hint" id="siloVolumeHint">Calculated from each cylinder and the cone (using Cylinder 1's diameter); you can edit this value.</div>
           </div>
+          <div class="settings-field">
+            <label for="siloSettingsCapacity">Maximum feed capacity (kg)</label>
+            <input id="siloSettingsCapacity" type="number" min="0" step="any" inputmode="decimal">
+            <span class="settings-field-error" id="siloSettingsCapacityError"></span>
+            <div class="settings-volume-hint">Enter the silo's rated feed capacity. Tracker readings and feed estimates use this value.</div>
+          </div>
         </div>
         <div class="settings-form-actions">
           <button class="btn-lg btn-primary" id="siloSettingsSubmit" type="submit">Add silo</button>
@@ -791,11 +863,26 @@
             <tr>
               <th scope="col">Silo</th><th scope="col">House</th><th scope="col">Cylinders</th>
               <th scope="col">Cylinder measurements (length unit)</th><th scope="col">Cone height (length unit)</th>
-              <th scope="col">Total volume (volume unit)</th><th scope="col" class="settings-actions-cell">Actions</th>
+              <th scope="col">Total volume (volume unit)</th><th scope="col">Capacity (kg)</th>
+              <th scope="col" class="settings-actions-cell">Actions</th>
             </tr>
           </thead>
           <tbody id="settingsSiloRows"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section class="settings-card settings-category-panel" id="feedSettingsCard" aria-labelledby="feedsSettingsHeading" hidden>
+      <h2 id="feedsSettingsHeading">Feed sizes</h2>
+      <p>Set each feed type's size in millimeters. These values are saved in Settings and are not used to convert Delivery Forecast quantities.</p>
+      <div class="settings-table-wrap">
+        <table class="settings-table">
+          <thead><tr><th scope="col">Feed type</th><th scope="col">Size (mm)</th></tr></thead>
+          <tbody id="settingsFeedRows"></tbody>
+        </table>
+      </div>
+      <div class="settings-form-actions">
+        <button class="btn-lg btn-primary" type="button" onclick="saveFeedSettings()">Save feed sizes</button>
       </div>
     </section>
   </main>
@@ -925,9 +1012,10 @@
           <input type="date" id="forecastStartDate" onchange="changeForecastWeek(this.value)">
           <span id="forecastWeekLabel"></span>
         </div>
-        <div class="forecast-table-wrap">
+        <div class="forecast-table-wrap" role="region" aria-label="Weekly delivery quantities by day" tabindex="0">
           <table class="forecast-table" id="forecastTable"></table>
         </div>
+        <p class="forecast-scroll-hint">Scroll the table sideways to view all delivery days.</p>
         <label class="forecast-notes" for="forecastNotes">
           Notes
           <textarea id="forecastNotes" maxlength="2000" placeholder="Add notes about this week's delivery forecast..."></textarea>
@@ -1002,7 +1090,7 @@
 
   <script>
     const allHouseNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
-    let activeFilter = '1-12';
+    let activeFilter = 'FH';
     let activeStatusFilter = '';
     let farmData = {};
     let placementDates = {};
@@ -1032,6 +1120,8 @@
     const lengthUnitLabels = { m: 'm', cm: 'cm', mm: 'mm', ft: 'ft', in: 'in' };
     const volumeUnitLabels = { m3: 'm³', L: 'L', ft3: 'ft³' };
     let settingsData = null;
+    let settingsLoadError = '';
+    let settingsIsLoaded = false;
     let siloFormInitialized = false;
     let editingHouseId = '';
     let editingSiloId = '';
@@ -1084,11 +1174,177 @@
             coneHeightM: coneHeightM,
             lengthUnit: 'm',
             volumeM3: volumeM3,
-            volumeUnit: 'm3'
+            volumeUnit: 'm3',
+            capacityKg: number <= 12
+              ? (index === 0 ? 20238.5 : 16158.5)
+              : 21522
           });
         });
       });
-      return { defaultLengthUnit: 'm', houses: houses, silos: silos };
+      return {
+        defaultLengthUnit: 'm',
+        houses: houses,
+        silos: silos,
+        feeds: ['BSC', 'BSP', 'CBC', 'BFP'].map(function(id) {
+          return { id: id, size: 0 };
+        })
+      };
+    }
+
+    function compareHouseIds(left, right) {
+      const leftMatch = String(left).match(/^(FH|CH)(\d+)$/i);
+      const rightMatch = String(right).match(/^(FH|CH)(\d+)$/i);
+      if (leftMatch && rightMatch) {
+        const typeOrder = (leftMatch[1].toUpperCase() === 'FH' ? 0 : 1) -
+          (rightMatch[1].toUpperCase() === 'FH' ? 0 : 1);
+        return typeOrder || Number(leftMatch[2]) - Number(rightMatch[2]);
+      }
+      if (leftMatch) return -1;
+      if (rightMatch) return 1;
+      return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' });
+    }
+
+    function compareSiloIds(left, right) {
+      return left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' });
+    }
+
+    function getConfiguredHouseIds() {
+      const houses = settingsData && Array.isArray(settingsData.houses)
+        ? settingsData.houses.map(function(house) { return house.id; })
+        : allHouseNumbers.map(function(number) { return `FH${number}`; });
+      return houses.sort(compareHouseIds);
+    }
+
+    function getConfiguredSiloDisplayName(silo) {
+      const prefix = `${silo.houseId}-`;
+      return silo.id.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase())
+        ? silo.id.slice(prefix.length)
+        : silo.id;
+    }
+
+    function syncConfiguredFarmData() {
+      const previousFarmData = farmData;
+      const nextFarmData = {};
+      getConfiguredHouseIds().forEach(function(houseId) {
+        const assignedSilos = settingsData.silos
+          .filter(function(silo) { return silo.houseId.toLocaleLowerCase() === houseId.toLocaleLowerCase(); })
+          .slice()
+          .sort(function(left, right) { return compareSiloIds(left.id, right.id); });
+        nextFarmData[houseId] = assignedSilos.map(function(configuredSilo, index) {
+          const displayName = getConfiguredSiloDisplayName(configuredSilo);
+          let previousSilo = (previousFarmData[houseId] || []).find(function(silo) {
+            return silo.settingsId === configuredSilo.id || silo.name === displayName;
+          });
+          if (!previousSilo) {
+            Object.keys(previousFarmData).some(function(previousHouseId) {
+              previousSilo = (previousFarmData[previousHouseId] || []).find(function(silo) {
+                return silo.settingsId === configuredSilo.id || silo.name === displayName;
+              });
+              return Boolean(previousSilo);
+            });
+          }
+          const capacityKg = Number(configuredSilo.capacityKg) || Number(configuredSilo.volumeM3) * 1000;
+          return {
+            name: displayName,
+            settingsId: configuredSilo.id,
+            maxCap: capacityKg,
+            points: previousSilo ? previousSilo.points : getInitialLine(),
+            isEmpty: previousSilo ? previousSilo.isEmpty : false,
+            currentKg: previousSilo ? previousSilo.currentKg : 0,
+            currentPct: previousSilo ? previousSilo.currentPct : 0,
+            status: previousSilo ? previousSilo.status : 'SAFE',
+          };
+        });
+        if (!placementDates[houseId]) placementDates[houseId] = '';
+      });
+      farmData = nextFarmData;
+    }
+
+    function changeSettingsCategory(category) {
+      const showFeeds = category === 'feeds';
+      document.getElementById('defaultUnitSettingsCard').hidden = showFeeds;
+      document.getElementById('houseSettingsCard').hidden = showFeeds;
+      document.getElementById('siloSettingsCard').hidden = showFeeds;
+      document.getElementById('feedSettingsCard').hidden = !showFeeds;
+      document.getElementById('houseSiloRegisterToggle').hidden = showFeeds;
+      if (showFeeds) {
+        document.getElementById('houseSiloRegister').hidden = true;
+        document.getElementById('houseSiloRegisterToggle').setAttribute('aria-expanded', 'false');
+        document.getElementById('houseSiloRegisterToggle').textContent = 'View existing houses & silos';
+      }
+      renderFeedSettings();
+    }
+
+    async function toggleHouseSiloRegister() {
+      const register = document.getElementById('houseSiloRegister');
+      const toggle = document.getElementById('houseSiloRegisterToggle');
+      register.hidden = !register.hidden;
+      toggle.setAttribute('aria-expanded', String(!register.hidden));
+      toggle.textContent = register.hidden
+        ? 'View existing houses & silos'
+        : 'Hide existing houses & silos';
+      if (!register.hidden && !settingsIsLoaded) {
+        showHouseSiloRegisterLoadState();
+        if (!settingsLoadError) await loadSettings();
+        if (!settingsIsLoaded) showHouseSiloRegisterLoadState();
+      }
+    }
+
+    function showHouseSiloRegisterLoadState() {
+      const message = settingsLoadError
+        ? window.location.protocol === 'file:'
+          ? 'Existing houses and silos are only available when the tracker is opened from its web app, not as a local file.'
+          : `Existing houses and silos could not be loaded: ${settingsLoadError}`
+        : 'Loading existing houses and silos...';
+      document.getElementById('settingsHouseSiloRows').innerHTML = `<tr>
+        <td class="settings-empty" colspan="3">
+          ${escapeSettingsHtml(message)}
+          ${settingsLoadError ? '<br><button type="button" onclick="retryHouseSiloRegisterLoad()">Retry</button>' : ''}
+        </td>
+      </tr>`;
+    }
+
+    async function retryHouseSiloRegisterLoad() {
+      settingsLoadError = '';
+      showHouseSiloRegisterLoadState();
+      await loadSettings();
+      if (!settingsIsLoaded) showHouseSiloRegisterLoadState();
+    }
+
+    function renderFeedSettings() {
+      if (!settingsData) return;
+      const feedSettings = new Map(settingsData.feeds.map(function(feed) {
+        return [feed.id, feed];
+      }));
+      document.getElementById('settingsFeedRows').innerHTML = ['BSC', 'BSP', 'CBC', 'BFP'].map(function(id) {
+        const feed = feedSettings.get(id) || { size: 0 };
+        return `<tr>
+          <th scope="row">${id}</th>
+          <td><input class="settings-feed-size" type="number" min="0" step="any" inputmode="decimal"
+            aria-label="${id} feed size" data-feed-size="${id}" value="${escapeSettingsHtml(feed.size)}"></td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function saveFeedSettings() {
+      if (!ensureSettingsLoaded()) return;
+      const feeds = ['BSC', 'BSP', 'CBC', 'BFP'].map(function(id) {
+        return {
+          id: id,
+          size: Number(document.querySelector(`[data-feed-size="${id}"]`).value),
+        };
+      });
+      const invalidFeed = feeds.find(function(feed) {
+        return !Number.isFinite(feed.size) || feed.size < 0;
+      });
+      if (invalidFeed) {
+        showSettingsToast(`Enter a valid size in millimeters for ${invalidFeed.id}.`, true);
+        return;
+      }
+      await persistSettings(
+        Object.assign({}, settingsData, { feeds: feeds }),
+        'Feed sizes saved.'
+      );
     }
 
     function normalizeSiloSettings(silo) {
@@ -1113,22 +1369,47 @@
 
     function normalizeSettings(settings) {
       return Object.assign({}, settings, {
-        silos: settings.silos.map(normalizeSiloSettings)
+        houses: settings.houses || [],
+        silos: (settings.silos || []).map(function(silo) {
+          const normalized = normalizeSiloSettings(silo);
+          if (!Number.isFinite(Number(normalized.capacityKg)) || Number(normalized.capacityKg) <= 0) {
+            const houseNumber = Number(String(normalized.houseId).replace(/^FH/, ''));
+            normalized.capacityKg = /^FH\d+$/.test(normalized.houseId) && houseNumber <= 12
+              ? (/Silo1$/i.test(normalized.id) ? 20238.5 : 16158.5)
+              : /^FH\d+$/.test(normalized.houseId)
+                ? 21522
+                : Number(normalized.volumeM3) * 1000;
+          }
+          return normalized;
+        }),
+        feeds: Array.isArray(settings.feeds)
+          ? settings.feeds.map(function(feed) { return { id: feed.id, size: feed.size }; })
+          : ['BSC', 'BSP', 'CBC', 'BFP'].map(function(id) { return { id: id, size: 0 }; })
       });
     }
 
     async function loadSettings() {
+      settingsLoadError = '';
       try {
         const response = await fetch('/api/settings');
-        const result = await response.json();
+        let result;
+        try {
+          result = await response.json();
+        } catch {
+          throw new Error(response.ok
+            ? 'The settings service returned an invalid response.'
+            : `The settings service is unavailable (HTTP ${response.status}).`);
+        }
         if (!response.ok || result.error) {
           throw new Error(result.error || 'Unable to load settings.');
         }
         settingsData = result.settings
           ? normalizeSettings(result.settings)
           : createDefaultSettings();
+        settingsIsLoaded = true;
         renderSettings();
       } catch (error) {
+        settingsLoadError = error.message || 'Unable to load settings.';
         showSettingsToast(`Settings could not be loaded: ${error.message}`, true);
         console.error('Error loading settings:', error);
       }
@@ -1219,6 +1500,7 @@
     function renderSettings() {
       if (!settingsData) return;
       document.getElementById('settingsDefaultUnit').value = settingsData.defaultLengthUnit;
+      renderFeedSettings();
       if (!siloFormInitialized && !editingSiloId) {
         resetSiloForm();
         siloFormInitialized = true;
@@ -1227,7 +1509,7 @@
       const selectedHouseId = siloHouseSelect.value;
       const houseOptions = settingsData.houses
         .slice()
-        .sort(function(left, right) { return left.id.localeCompare(right.id); })
+        .sort(function(left, right) { return compareHouseIds(left.id, right.id); })
         .map(function(house) {
           return `<option value="${escapeSettingsHtml(house.id)}">${escapeSettingsHtml(house.id)}</option>`;
         }).join('');
@@ -1240,7 +1522,7 @@
 
       const houseRows = settingsData.houses
         .slice()
-        .sort(function(left, right) { return left.id.localeCompare(right.id); })
+        .sort(function(left, right) { return compareHouseIds(left.id, right.id); })
         .map(function(house) {
           const siloCount = settingsData.silos.filter(function(silo) {
             return silo.houseId.toLocaleLowerCase() === house.id.toLocaleLowerCase();
@@ -1258,15 +1540,54 @@
       document.getElementById('settingsHouseRows').innerHTML = houseRows ||
         '<tr><td class="settings-empty" colspan="3">No houses have been added.</td></tr>';
 
+      const houseSiloRows = settingsData.houses
+        .slice()
+        .sort(function(left, right) { return compareHouseIds(left.id, right.id); })
+        .map(function(house) {
+          const houseArgument = settingsInlineArgument(house.id);
+          const assignedSilos = settingsData.silos
+            .filter(function(silo) {
+              return silo.houseId.toLocaleLowerCase() === house.id.toLocaleLowerCase();
+            })
+            .slice()
+            .sort(function(left, right) { return compareSiloIds(left.id, right.id); });
+          const siloList = assignedSilos.length
+            ? `<div class="settings-silo-list">${assignedSilos.map(function(silo) {
+              const siloArgument = settingsInlineArgument(silo.id);
+              return `<div class="settings-silo-item">
+                <span>${escapeSettingsHtml(silo.id)}</span>
+                <span class="settings-silo-actions">
+                  <button type="button" onclick="editSilo(${siloArgument})">Edit silo</button>
+                  <button type="button" onclick="deleteSilo(${siloArgument})">Remove</button>
+                </span>
+              </div>`;
+            }).join('')}</div>`
+            : '<span class="settings-empty">No silos assigned</span>';
+          return `<tr>
+            <td>${escapeSettingsHtml(house.id)}</td>
+            <td>${siloList}</td>
+            <td class="settings-actions-cell">
+              <button type="button" onclick="editHouse(${houseArgument})">Edit house</button>
+              <button type="button" onclick="deleteHouse(${houseArgument})">Remove</button>
+            </td>
+          </tr>`;
+        }).join('');
+      document.getElementById('settingsHouseSiloRows').innerHTML = houseSiloRows ||
+        '<tr><td class="settings-empty" colspan="3">No houses have been added.</td></tr>';
+
       const siloRows = settingsData.silos
         .slice()
-        .sort(function(left, right) { return left.id.localeCompare(right.id); })
+        .sort(function(left, right) {
+          return compareHouseIds(left.houseId, right.houseId) ||
+            compareSiloIds(left.id, right.id);
+        })
         .map(function(silo) {
           const id = escapeSettingsHtml(silo.id);
           const argument = settingsInlineArgument(silo.id);
           const houseId = escapeSettingsHtml(silo.houseId);
           const lengthUnit = escapeSettingsHtml(lengthUnitLabels[silo.lengthUnit]);
           const volumeUnit = escapeSettingsHtml(volumeUnitLabels[silo.volumeUnit]);
+          const capacityKg = Number(silo.capacityKg) || Number(silo.volumeM3) * 1000;
           const cylinderMeasurements = silo.cylinders.map(function(cylinder, index) {
             const height = formatSettingsNumber(cylinder.heightM / lengthUnitToMeters[silo.lengthUnit]);
             const diameter = formatSettingsNumber(cylinder.diameterM / lengthUnitToMeters[silo.lengthUnit]);
@@ -1277,6 +1598,7 @@
             <td>${cylinderMeasurements}</td>
             <td>${formatSettingsNumber(silo.coneHeightM / lengthUnitToMeters[silo.lengthUnit])} ${lengthUnit}</td>
             <td>${formatSettingsNumber(silo.volumeM3 / volumeUnitToCubicMeters[silo.volumeUnit])} ${volumeUnit}</td>
+            <td>${formatSettingsNumber(capacityKg)} kg</td>
             <td class="settings-actions-cell">
               <button type="button" onclick="editSilo(${argument})">Edit</button>
               <button type="button" onclick="deleteSilo(${argument})">Remove</button>
@@ -1284,8 +1606,9 @@
           </tr>`;
         }).join('');
       document.getElementById('settingsSiloRows').innerHTML = siloRows ||
-          '<tr><td class="settings-empty" colspan="7">No silos have been added.</td></tr>';
+          '<tr><td class="settings-empty" colspan="8">No silos have been added.</td></tr>';
       updateSiloFormUnitLabels();
+      changeSettingsCategory(document.getElementById('settingsCategory').value);
     }
 
     function updateSiloFormUnitLabels() {
@@ -1305,8 +1628,13 @@
     }
 
     function ensureSettingsLoaded() {
-      if (settingsData) return true;
-      showSettingsToast('Settings are not available yet. Check the connection and reload.', true);
+      if (settingsData && settingsIsLoaded) return true;
+      showSettingsToast(
+        settingsLoadError
+          ? `Settings could not be loaded: ${settingsLoadError}`
+          : 'Settings are still loading. Wait a moment, then try again.',
+        true
+      );
       return false;
     }
 
@@ -1325,7 +1653,11 @@
           throw new Error(result.error || 'Unable to save settings.');
         }
         settingsData = result.settings || nextSettings;
+        if (!Array.isArray(settingsData.feeds)) settingsData.feeds = [];
+        settingsData = normalizeSettings(settingsData);
+        syncConfiguredFarmData();
         renderSettings();
+        renderHouses();
         showSettingsToast(successMessage, false);
         return true;
       } catch (error) {
@@ -1356,7 +1688,8 @@
 
     function cancelHouseEdit() {
       editingHouseId = '';
-      document.getElementById('houseSettingsId').value = '';
+      document.getElementById('houseSettingsType').value = 'FH';
+      document.getElementById('houseSettingsNumber').value = '';
       document.getElementById('houseSettingsSubmit').textContent = 'Add house';
       document.getElementById('houseSettingsCancel').hidden = true;
       clearSettingsErrors();
@@ -1367,21 +1700,29 @@
       const house = settingsData.houses.find(function(item) { return item.id === id; });
       if (!house) return;
       editingHouseId = id;
-      document.getElementById('houseSettingsId').value = house.id;
+      const match = house.id.match(/^(CH|FH)(\d+)$/i);
+      document.getElementById('houseSettingsType').value = match ? match[1].toUpperCase() : 'FH';
+      document.getElementById('houseSettingsNumber').value = match ? match[2] : '';
       document.getElementById('houseSettingsSubmit').textContent = 'Save house';
       document.getElementById('houseSettingsCancel').hidden = false;
-      document.getElementById('houseSettingsId').focus();
+      document.getElementById('houseSettingsNumber').focus();
     }
 
     async function saveHouse(event) {
       event.preventDefault();
       if (!ensureSettingsLoaded()) return;
       clearSettingsErrors();
-      const id = document.getElementById('houseSettingsId').value.trim();
+      const type = document.getElementById('houseSettingsType').value;
+      const numberValue = document.getElementById('houseSettingsNumber').value.trim();
+      const id = `${type}${numberValue}`;
       const errorElement = document.getElementById('houseSettingsIdError');
-      if (!id) {
-        errorElement.textContent = 'Enter a house name or ID.';
-        showSettingsToast('House name or ID is required.', true);
+      if (!['CH', 'FH'].includes(type)) {
+        showSettingsToast('Choose CH or FH for the house type.', true);
+        return;
+      }
+      if (!/^[1-9]\d{0,3}$/.test(numberValue)) {
+        errorElement.textContent = 'Enter a house number from 1 to 9999.';
+        showSettingsToast('Enter a valid house number from 1 to 9999.', true);
         return;
       }
       const duplicate = settingsData.houses.some(function(house) {
@@ -1389,12 +1730,12 @@
           house.id.toLocaleLowerCase() === id.toLocaleLowerCase();
       });
       if (duplicate) {
-        errorElement.textContent = 'House names or IDs must be unique.';
-        showSettingsToast('That house name or ID is already in use.', true);
+        errorElement.textContent = 'That house number already exists for this type.';
+        showSettingsToast('That house number is already in use for this type.', true);
         return;
       }
       const houses = settingsData.houses.map(function(house) {
-        return house.id === editingHouseId ? { id: id } : { id: house.id };
+        return house.id === editingHouseId ? { id: id } : house;
       });
       if (!editingHouseId) houses.push({ id: id });
       const silos = settingsData.silos.map(function(silo) {
@@ -1408,6 +1749,14 @@
         Object.assign({}, settingsData, { houses: houses, silos: silos }),
         editingHouseId ? 'House updated.' : 'House added.'
       );
+      if (saved && editingHouseId && id !== editingHouseId) {
+        if (placementDates[editingHouseId]) placementDates[id] = placementDates[editingHouseId];
+        if (customRemarks[editingHouseId]) customRemarks[id] = customRemarks[editingHouseId];
+        delete placementDates[editingHouseId];
+        delete customRemarks[editingHouseId];
+        saveLocalPlacementBackup();
+        renderHouses();
+      }
       if (saved) cancelHouseEdit();
     }
 
@@ -1448,6 +1797,7 @@
       siloFormVolumeUnit = 'm3';
       document.getElementById('siloCylinderMeasurements').innerHTML = '';
       document.getElementById('siloSettingsVolume').value = '';
+      document.getElementById('siloSettingsCapacity').value = '';
       updateSiloFormUnitLabels();
     }
 
@@ -1481,6 +1831,8 @@
       document.getElementById('siloSettingsVolumeUnit').value = volumeUnit;
       document.getElementById('siloSettingsVolume').value =
         String(silo.volumeM3 / volumeUnitToCubicMeters[volumeUnit]);
+      document.getElementById('siloSettingsCapacity').value =
+        String(Number(silo.capacityKg) || Number(silo.volumeM3) * 1000);
       siloFormLengthUnit = lengthUnit;
       siloFormVolumeUnit = volumeUnit;
       updateSiloFormUnitLabels();
@@ -1579,6 +1931,7 @@
       const volumeUnit = document.getElementById('siloSettingsVolumeUnit').value;
       const coneHeight = document.getElementById('siloSettingsConeHeight').value;
       const volume = document.getElementById('siloSettingsVolume').value;
+      const capacityValue = document.getElementById('siloSettingsCapacity').value;
       const cylinderMeasurements = readCylinderFormValues();
       let isValid = true;
       function setError(field, message) {
@@ -1620,6 +1973,10 @@
       if (volume === '' || !Number.isFinite(volumeM3) || volumeM3 <= 0) {
         setError('siloSettingsVolume', 'Enter a positive number.');
       }
+      const capacityKg = Number(capacityValue);
+      if (capacityValue === '' || !Number.isFinite(capacityKg) || capacityKg <= 0) {
+        setError('siloSettingsCapacity', 'Enter a positive capacity in kilograms.');
+      }
       if (!isValid) {
         showSettingsToast('Check the highlighted silo fields and try again.', true);
         return;
@@ -1632,7 +1989,8 @@
         coneHeightM: coneHeightM,
         lengthUnit: lengthUnit,
         volumeM3: volumeM3,
-        volumeUnit: volumeUnit
+        volumeUnit: volumeUnit,
+        capacityKg: capacityKg
       });
       const silos = settingsData.silos.filter(function(item) {
         return item.id !== editingSiloId;
@@ -1701,8 +2059,7 @@
     function applyTheme(theme) {
       const isDark = theme === 'dark';
       document.body.dataset.theme = isDark ? 'dark' : 'light';
-      allHouseNumbers.forEach(function(num) {
-        const houseKey = `FH${num}`;
+      getConfiguredHouseIds().forEach(function(houseKey) {
         (farmData[houseKey] || []).forEach(function(_silo, idx) {
           drawSiloCanvas(houseKey, idx, `canvas_${houseKey}_${idx}`);
         });
@@ -1734,6 +2091,8 @@
     }
 
     function initData() {
+      settingsData = createDefaultSettings();
+      syncConfiguredFarmData();
       loadThemePreference();
       setupSiloUploadDropzone();
       const pst = getPSTDateAndTimeString();
@@ -1742,23 +2101,10 @@
 
       loadLocalPlacementBackup();
 
-      allHouseNumbers.forEach(num => {
-        const houseKey = `FH${num}`;
-        if (!placementDates[houseKey]) {
-          placementDates[houseKey] = '';
-        }
-
-        const maxCap1 = (num <= 12) ? 20238.5 : 21522;
-        const maxCap2 = (num <= 12) ? 16158.5 : 21522;
-
-        farmData[houseKey] = [
-          { name: 'Silo1', maxCap: maxCap1, points: getInitialLine(), isEmpty: false, currentKg: 0, currentPct: 0, status: 'SAFE' },
-          { name: 'Silo2', maxCap: maxCap2, points: getInitialLine(), isEmpty: false, currentKg: 0, currentPct: 0, status: 'SAFE' }
-        ];
+      loadSettings().then(function() {
+        syncConfiguredFarmData();
+        fetchFromCloud();
       });
-
-      fetchFromCloud();
-      loadSettings();
     }
 
     function makePrintableSiloSvg(houseKey, idx) {
@@ -2085,19 +2431,18 @@
       const result = await tesseract.recognize(file, 'eng');
       const text = result && result.data && result.data.text || '';
       const foundHouses = new Set();
-      const housePattern = /\bFH[\s:-]*[O0]?(\d{1,2})\b/gi;
+      const housePattern = /\b(CH|FH)[\s:-]*[O0]?(\d{1,4})\b/gi;
       let match;
       while ((match = housePattern.exec(text))) {
-        const number = Number(match[1]);
-        if (allHouseNumbers.includes(number)) foundHouses.add(number);
+        foundHouses.add(`${match[1].toUpperCase()}${Number(match[2])}`);
       }
-      const readings = allHouseNumbers
-        .filter(function(number) { return foundHouses.has(number); })
-        .flatMap(function(houseNumber) {
-          return ['Silo1', 'Silo2'].map(function(silo) {
+      const readings = getConfiguredHouseIds()
+        .filter(function(houseId) { return foundHouses.has(houseId); })
+        .flatMap(function(houseId) {
+          return (farmData[houseId] || []).map(function(silo) {
             return {
-              house: `FH${houseNumber}`,
-              silo: silo,
+              house: houseId,
+              silo: silo.name,
               mark: 'empty',
               fillLevelPercent: 0,
               confidence: 0.5,
@@ -2105,7 +2450,7 @@
           });
         });
       if (!readings.length) {
-        throw new Error('OCR could not identify any FH house labels. Try a clearer, straight-on photo or use Groq AI.');
+          throw new Error('OCR could not identify a configured CH or FH house with assigned silos. Try a clearer photo or use Groq AI.');
       }
       return {
         date: getSiloOcrDate(text),
@@ -2204,13 +2549,13 @@
           ? 'Check against photo'
           : `${Math.round(reading.confidence * 100)}% confidence`;
         return `<label class="silo-reading-row">
-          <span class="silo-reading-label">${reading.house} · ${reading.silo}
+          <span class="silo-reading-label">${escapeSettingsHtml(reading.house)} · ${escapeSettingsHtml(reading.silo)}
             <span class="silo-reading-confidence">${markText} · ${confidenceText}</span>
           </span>
           <input class="silo-reading-percent" type="number" min="0" max="100" step="0.1"
             inputmode="decimal" placeholder="Leave blank to skip" value="${initialValue}"
-            data-house="${reading.house}" data-silo="${reading.silo}"
-            aria-label="${reading.house} ${reading.silo} fill level percent">
+            data-house="${escapeSettingsHtml(reading.house)}" data-silo="${escapeSettingsHtml(reading.silo)}"
+            aria-label="${escapeSettingsHtml(reading.house)} ${escapeSettingsHtml(reading.silo)} fill level percent">
         </label>`;
       }).join('');
       document.getElementById('siloReadingDate').value = result.date || '';
@@ -2270,7 +2615,10 @@
 
       try {
         readings.forEach(function(reading) {
-          const siloIndex = reading.silo === 'Silo1' ? 0 : 1;
+          const siloIndex = (farmData[reading.house] || []).findIndex(function(silo) {
+            return silo.name === reading.silo;
+          });
+          if (siloIndex < 0) throw new Error(`${reading.house} ${reading.silo} is no longer configured.`);
           const y = 192 - (reading.fillLevelPercent / 100) * 180;
           const inventoryPercent = siloPercentAtY(reading.house, siloIndex, y);
           const silo = farmData[reading.house][siloIndex];
@@ -2356,8 +2704,7 @@
         document.getElementById('recordTime').value = timeVal;
       }
 
-      allHouseNumbers.forEach(num => {
-        const houseKey = `FH${num}`;
+      getConfiguredHouseIds().forEach(function(houseKey) {
         const age = computeFlockAge(houseKey);
         const pDate = placementDates[houseKey] || '';
         const cRemark = customRemarks[houseKey] || '';
@@ -2455,9 +2802,11 @@
       setMessage('Calculating estimated feed use...', false);
 
       try {
-        allHouseNumbers.forEach(num => {
-          const houseKey = `FH${num}`;
-          const ratePerHour = (num <= 12) ? 270 : 312;
+        const configuredHouseIds = getConfiguredHouseIds();
+        configuredHouseIds.forEach(function(houseKey) {
+          if (!/^FH\d+$/.test(houseKey)) return;
+          const num = Number(houseKey.slice(2));
+          const ratePerHour = num <= 12 ? 270 : 312;
           applyDeductionToHouse(houseKey, diffHours * ratePerHour);
         });
 
@@ -2470,7 +2819,12 @@
         const saved = await executeSave(false, false);
         if (saved) {
           lastUpdateTimestampMs = Date.now();
-          setMessage(`Updated and saved estimated feed use for ${diffHours.toFixed(1)} hours.`, false);
+          const hasFhHouses = configuredHouseIds.some(function(houseKey) { return /^FH\d+$/.test(houseKey); });
+          const hasChHouses = configuredHouseIds.some(function(houseKey) { return /^CH\d+$/.test(houseKey); });
+          const statusMessage = hasFhHouses
+            ? `Updated and saved FH feed estimates for ${diffHours.toFixed(1)} hours.${hasChHouses ? ' CH readings were unchanged because no consumption rate is configured.' : ''}`
+            : 'Saved current readings. Automatic feed-use estimates are only configured for FH houses.';
+          setMessage(statusMessage, false);
         } else {
           isUpdateUnsaved = true;
           setMessage('The estimate was updated on screen but could not be saved. Check the connection, then click Save Now.', true);
@@ -2478,7 +2832,7 @@
       } finally {
         isUpdatingData = false;
         updateButton.disabled = false;
-        updateButton.innerText = '🔄 Update Data';
+        updateButton.innerText = 'Update Data';
       }
     }
 
@@ -2591,6 +2945,7 @@
 
                       farmData[houseKey][idx] = {
                         name: s.name,
+                        settingsId: farmData[houseKey][idx].settingsId,
                         maxCap: s.maxCap,
                         currentKg: loadedKg,
                         currentPct: s.currentPct || 0,
@@ -2644,8 +2999,7 @@
     }
 
     function recalculateAllAges() {
-      allHouseNumbers.forEach(function(num) {
-        const houseKey = `FH${num}`;
+      getConfiguredHouseIds().forEach(function(houseKey) {
         const age = computeFlockAge(houseKey);
         const ageText = age === '' ? 'Not set' : `${age} days`;
         const cardAgeEl = document.getElementById(`flockAge_${houseKey}`);
@@ -2662,8 +3016,39 @@
     }
 
     function getSiloProfile(houseKey, idx) {
+      const trackedSilo = (farmData[houseKey] || [])[idx];
+      const configuredSilo = settingsData && settingsData.silos.find(function(silo) {
+        return trackedSilo && silo.id === trackedSilo.settingsId;
+      });
       const houseNumber = Number(houseKey.replace('FH', ''));
-      if (houseNumber > 12) {
+      const isDefaultFhSilo = /^FH\d+$/.test(houseKey) &&
+        allHouseNumbers.includes(houseNumber) &&
+        /^Silo[12]$/.test(trackedSilo && trackedSilo.name);
+      if (configuredSilo && !isDefaultFhSilo) {
+        const cylinders = configuredSilo.cylinders;
+        const cylinderVolume = cylinders.reduce(function(total, cylinder) {
+          return total + Math.PI * Math.pow(cylinder.diameterM / 2, 2) * cylinder.heightM;
+        }, 0);
+        const coneVolume = Math.PI * Math.pow(cylinders[0].diameterM / 2, 2) *
+          configuredSilo.coneHeightM / 3;
+        const volume = cylinderVolume + coneVolume;
+        const capacityKg = Number(configuredSilo.capacityKg) || Number(configuredSilo.volumeM3) * 1000;
+        const cylinderKg = capacityKg * 0.96 * cylinderVolume / volume;
+        return {
+          diameter: cylinders[0].diameterM,
+          roofHeight: 0.5,
+          cylinderSections: cylinders.length,
+          cylinderSectionHeight: cylinders.reduce(function(total, cylinder) {
+            return total + cylinder.heightM;
+          }, 0) / cylinders.length,
+          hopperHeight: configuredSilo.coneHeightM,
+          roofKg: capacityKg * 0.04,
+          cylinderSectionKg: cylinderKg / cylinders.length,
+          hopperKg: capacityKg * 0.96 * coneVolume / volume
+        };
+      }
+
+      if (houseKey.startsWith('FH') && houseNumber > 12) {
         return {
           diameter: 3,
           roofHeight: 0.8,
@@ -2759,8 +3144,8 @@
 
     function setFilter(filter) {
       activeFilter = filter;
-      document.getElementById('btn_1_12').classList.toggle('active', filter === '1-12');
-      document.getElementById('btn_13_19').classList.toggle('active', filter === '13-19');
+      document.getElementById('btn_fh').classList.toggle('active', filter === 'FH');
+      document.getElementById('btn_ch').classList.toggle('active', filter === 'CH');
       document.getElementById('btn_all').classList.toggle('active', filter === 'ALL');
       renderHouses();
     }
@@ -2782,16 +3167,13 @@
     }
 
     function getHousesForCurrentView() {
-      let targetHouses = [];
-      if (activeFilter === '1-12') targetHouses = allHouseNumbers.filter(n => n <= 12);
-      else if (activeFilter === '13-19') targetHouses = allHouseNumbers.filter(n => n >= 13);
-      else targetHouses = allHouseNumbers;
-
+      const targetHouses = getConfiguredHouseIds().filter(function(houseId) {
+        return activeFilter === 'ALL' || houseId.toUpperCase().startsWith(activeFilter);
+      });
       const search = (document.getElementById('houseSearch')?.value || '').trim().toLowerCase();
-      return targetHouses.filter(function(num) {
-        const houseKey = `FH${num}`;
-        const silos = farmData[houseKey] || [];
-        if (search && !houseKey.toLowerCase().includes(search)) return false;
+      return targetHouses.filter(function(houseId) {
+        const silos = farmData[houseId] || [];
+        if (search && !houseId.toLowerCase().includes(search)) return false;
         if (activeStatusFilter && !silos.some(silo => getSiloStatus(silo) === activeStatusFilter)) return false;
         return true;
       });
@@ -2874,8 +3256,7 @@
         return;
       }
 
-      targetHouses.forEach(function(num) {
-        const houseKey = `FH${num}`;
+      targetHouses.forEach(function(houseKey) {
         const silos = farmData[houseKey];
         if (!silos) return;
 
@@ -2888,7 +3269,7 @@
         houseBox.dataset.houseKey = houseKey;
         houseBox.dataset.status = houseStatus;
         houseBox.innerHTML = `
-          <div class="house-title"><span>${houseKey}</span><span class="house-status-pill status-${houseStatus.toLowerCase()}">${houseStatus}</span></div>
+          <div class="house-title"><span>${escapeSettingsHtml(houseKey)}</span><span class="house-status-pill status-${houseStatus.toLowerCase()}">${houseStatus}</span></div>
           <div class="placement-box">
             <label>Placement:</label>
             <input type="date" value="${pDateVal}" onchange="updatePlacementDate('${houseKey}', this.value)">
@@ -2909,7 +3290,7 @@
             <div class="canvas-container">
               <canvas id="${canvasId}" width="150" height="210"></canvas>
             </div>
-            <div class="silo-label-box">${silo.name}</div>
+            <div class="silo-label-box">${escapeSettingsHtml(silo.name)}</div>
             <div id="badge_${houseKey}_${idx}" class="status-badge status-safe">SAFE</div>
             <div class="readout-box" id="readout_${houseKey}_${idx}">0 kg (0%)</div>
             <div class="mini-actions">
@@ -2953,7 +3334,7 @@
       ctx.moveTo(cx, topY); ctx.lineTo(rightX, bodyTopY); ctx.lineTo(rightX, bodyBotY);
       ctx.lineTo(cx, botY); ctx.lineTo(leftX, bodyBotY); ctx.lineTo(leftX, bodyTopY);
       ctx.closePath();
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = isDarkTheme ? '#29352e' : '#ffffff';
       ctx.fill();
       ctx.restore();
 
@@ -3145,11 +3526,10 @@
     }
 
     function clearVisibleSilos() {
-      const targetHouses = getHousesForCurrentView().map(num => `FH${num}`);
-      targetHouses.forEach(function(num) {
-        const houseKey = num;
+      const targetHouses = getHousesForCurrentView();
+      targetHouses.forEach(function(houseKey) {
         delete customRemarks[houseKey];
-        farmData[houseKey].forEach(function(s) {
+        (farmData[houseKey] || []).forEach(function(s) {
           s.isEmpty = true; s.points = [{ x: 10, y: 192 }, { x: 140, y: 192 }];
         });
       });
@@ -3425,10 +3805,14 @@
           onclone: function(clonedDocument) {
             const clonedReport = clonedDocument.getElementById('forecastReport');
             clonedReport.style.width = '1120px';
+            clonedReport.style.height = 'auto';
+            clonedReport.style.maxHeight = 'none';
+            clonedReport.style.flex = 'none';
             clonedReport.style.maxWidth = 'none';
             clonedReport.style.overflow = 'visible';
             const tableWrap = clonedReport.querySelector('.forecast-table-wrap');
             tableWrap.style.overflow = 'visible';
+            clonedReport.querySelector('.forecast-scroll-hint').style.display = 'none';
             const table = clonedReport.querySelector('.forecast-table');
             table.style.width = '100%';
             table.style.minWidth = '0';

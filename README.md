@@ -59,14 +59,18 @@ spacing so it does not cover the last house cards.
 
 ## Settings
 
-Open **Settings** from the main navigation to manage the house and silo
-register, assign silos to houses, and choose a default length unit. The initial
-register is populated from the existing FH house and silo dimensions. New and
-edited dimensions are stored in meters and volume in cubic meters; the selected
-units only affect how those values are entered and displayed. Set the cylinder
-count to enter separate heights and diameters for every cylinder. Silo volume
-is calculated from each cylinder plus the cone (using Cylinder 1's diameter)
-and can be overridden in the form.
+Open **Settings** from the main navigation to manage FH and CH houses, their
+assigned silos, feed sizes in millimeters, and the default length unit. The dashboard has
+separate FH and CH filters. The initial register is populated from the
+existing FH house and silo dimensions. New and edited silo dimensions are
+stored in meters and volume in cubic meters; the selected units only affect
+how those values are entered and displayed. Set the cylinder count to enter
+separate heights and diameters for every cylinder. Silo volume is calculated
+from each cylinder plus the cone (using Cylinder 1's diameter) and can be
+overridden in the form. Enter each silo's rated maximum feed capacity in kg for
+tracker readings. The Feeds settings let you save a size in millimeters for
+BSC, BSP, CBC, and BFP; no house assignment or unit selection is needed, and
+these values are not currently used to convert Delivery Forecast quantities.
 
 Settings are stored in the `SiloSettings` tab in the existing spreadsheet,
 separately from tracker readings and feed forecasts. The Apps Script deployment

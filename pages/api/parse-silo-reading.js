@@ -1,9 +1,5 @@
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 const GROQ_MODEL = 'qwen/qwen3.8-27b';
-const VALID_HOUSE_NUMBERS = [
-  1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-];
-
 export const config = {
   maxDuration: 60,
   api: {
@@ -56,8 +52,11 @@ function validateRecognition(result) {
     if (
       !reading ||
       typeof reading !== 'object' ||
-      !VALID_HOUSE_NUMBERS.includes(reading.houseNumber) ||
-      !['Silo1', 'Silo2'].includes(reading.silo) ||
+      typeof reading.house !== 'string' ||
+      !/^(?:CH|FH)[1-9]\d{0,3}$/i.test(reading.house) ||
+      typeof reading.silo !== 'string' ||
+      !reading.silo.trim() ||
+      reading.silo.length > 100 ||
       !['level', 'empty', 'full', 'unreadable'].includes(reading.mark) ||
       !Number.isFinite(reading.fillLevelPercent) ||
       reading.fillLevelPercent < 0 ||
@@ -71,15 +70,17 @@ function validateRecognition(result) {
       requestError('The image reader returned invalid silo data. Please try another photo.', 502);
     }
 
-    const key = `${reading.houseNumber}-${reading.silo}`;
+    const house = reading.house.toUpperCase();
+    const silo = reading.silo.trim();
+    const key = `${house}-${silo.toLocaleLowerCase()}`;
     if (seenReadings.has(key)) {
       requestError('The image reader returned duplicate silo data. Please try another photo.', 502);
     }
     seenReadings.add(key);
 
     return {
-      house: `FH${reading.houseNumber}`,
-      silo: reading.silo,
+      house: house,
+      silo: silo,
       mark: reading.mark,
       fillLevelPercent: reading.mark === 'unreadable' ? null : reading.fillLevelPercent,
       confidence: reading.confidence,
@@ -109,10 +110,10 @@ export default async function handler(req, res) {
     const image = validateImageDataUrl(req.body && req.body.imageDataUrl);
     const prompt = [
       'Return only a valid JSON object with exactly these top-level fields: date, time, readings.',
-      'Each reading must contain houseNumber (integer), silo (Silo1 or Silo2), mark (level, empty, full, or unreadable), fillLevelPercent (number), and confidence (number from 0 to 1).',
+      'Each reading must contain house (the exact house label such as FH1 or CH1), silo (the exact silo label shown on the form), mark (level, empty, full, or unreadable), fillLevelPercent (number), and confidence (number from 0 to 1).',
       'Read this photo of one page of a printed silo inventory form.',
-      'The form has six house groups and two silos per house. Read only house and silo labels visible on the page.',
-      'Valid house numbers are 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, and 19; there is no FH07.',
+      'Read the house and silo labels exactly as printed. A house label uses FH or CH followed by a number; a house can have any number of configured silos.',
+      'House labels use either the FH or CH prefix followed by a positive number. Read only labels visible in the photo; preserve the prefix.',
       'Read the handwritten report date and time. Return date as YYYY-MM-DD and time as 24-hour HH:mm. Use an empty string if either cannot be read.',
       'For every visible silo, determine its mark:',
       '- level: a hand-drawn horizontal or curved feed surface; estimate its vertical position as fillLevelPercent, where 0 is the very bottom of the silo and 100 is the very top.',

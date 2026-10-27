@@ -138,6 +138,18 @@ function fetchLatestState_() {
 
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = spreadsheet.getSheetByName(READINGS_SHEET);
+  const savedSettings = fetchSettings_().settings;
+  const configuredSilos = {};
+  if (savedSettings && Array.isArray(savedSettings.silos)) {
+    savedSettings.silos.forEach(function(silo) {
+      const prefix = String(silo.houseId || '') + '-';
+      const siloId = String(silo.id || '');
+      const displayName = siloId.toLowerCase().indexOf(prefix.toLowerCase()) === 0
+        ? siloId.slice(prefix.length)
+        : siloId;
+      configuredSilos[String(silo.houseId || '') + '|' + displayName] = silo;
+    });
+  }
   const farmData = {};
   const customRemarks = {};
   const customAges = {};
@@ -168,9 +180,11 @@ function fetchLatestState_() {
       if (!customRemarks[house] && remark) customRemarks[house] = remark;
       if (customAges[house] === undefined && age !== '') customAges[house] = age;
 
-      if (!/^FH(?:[1-9]|1[0-9])$/.test(house) || !/^Silo[12]$/.test(siloName)) continue;
+      const siloConfiguration = configuredSilos[house + '|' + siloName];
+      const isLegacyHouseSilo = /^FH(?:[1-9]|1[0-9])$/.test(house) && /^Silo[12]$/.test(siloName);
+      if (!siloConfiguration && !isLegacyHouseSilo) continue;
       if (!farmData[house]) farmData[house] = [];
-      if (farmData[house].length >= 2 || farmData[house].some(function(silo) {
+      if (farmData[house].some(function(silo) {
         return silo.name === siloName;
       })) continue;
 
@@ -181,10 +195,12 @@ function fetchLatestState_() {
         console.error('Could not parse silo points for ' + house + '.');
       }
 
-      const houseNumber = Number.parseInt(house.replace('FH', ''), 10);
-      const maxCapacity = houseNumber <= 12
-        ? (siloName === 'Silo1' ? 20238.5 : 16158.5)
-        : 21522;
+      const houseNumber = Number.parseInt(house.replace(/^FH/, ''), 10);
+      const maxCapacity = siloConfiguration && Number(siloConfiguration.capacityKg) > 0
+        ? Number(siloConfiguration.capacityKg)
+        : houseNumber <= 12
+          ? (siloName === 'Silo1' ? 20238.5 : 16158.5)
+          : 21522;
       farmData[house].push({
         name: siloName,
         maxCap: maxCapacity,
@@ -268,6 +284,9 @@ function saveSettings_(settings) {
     if (!Array.isArray(silo.cylinders) || silo.cylinders.length !== silo.cylinderCount) {
       throw new Error('Provide measurements for every silo cylinder.');
     }
+    if (!Number.isFinite(silo.capacityKg) || silo.capacityKg <= 0) {
+      throw new Error('Every silo needs a positive maximum feed capacity in kilograms.');
+    }
     silo.cylinders.forEach(function(cylinder, index) {
       if (!cylinder || !Number.isFinite(cylinder.heightM) || cylinder.heightM <= 0 ||
           !Number.isFinite(cylinder.diameterM) || cylinder.diameterM <= 0) {
@@ -284,6 +303,21 @@ function saveSettings_(settings) {
       throw new Error('A silo has an invalid length or volume unit.');
     }
   });
+
+  if (settings.feeds !== undefined) {
+    if (!Array.isArray(settings.feeds) || settings.feeds.length > 20) {
+      throw new Error('Feed sizes have an invalid format.');
+    }
+    const feedIds = Object.create(null);
+    settings.feeds.forEach(function(feed) {
+      if (!feed || ['BSC', 'BSP', 'CBC', 'BFP'].indexOf(feed.id) < 0 ||
+          Object.prototype.hasOwnProperty.call(feedIds, feed.id) ||
+          !Number.isFinite(feed.size) || feed.size < 0) {
+        throw new Error('Each feed needs a valid size in millimeters.');
+      }
+      feedIds[feed.id] = true;
+    });
+  }
 
   const serializedSettings = JSON.stringify(settings);
   if (serializedSettings.length > 45000) throw new Error('Settings are too large to save.');
