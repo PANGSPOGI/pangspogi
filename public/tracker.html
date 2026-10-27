@@ -417,6 +417,18 @@
     .farm-delete-button { min-height: 34px; padding: 5px 9px; border: 1px solid rgba(255,210,205,.55); border-radius: 9px; background: rgba(153,45,38,.22); color: #fff; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
     .farm-delete-button:hover { background: rgba(153,45,38,.48); }
     .farm-delete-button:focus-visible { outline: 2px solid #ffd1cc; outline-offset: 2px; }
+    .farm-delete-confirm-box { width: min(440px, calc(100vw - 32px)); max-width: 440px; padding: 24px; text-align: left; }
+    .farm-delete-confirm-box h2 { margin-bottom: 10px; color: var(--ink); font-size: 21px; }
+    .farm-delete-confirm-box p { color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .farm-delete-confirm-box .farm-delete-name { margin: 10px 0; color: var(--ink); font-weight: 850; overflow-wrap: anywhere; }
+    .farm-delete-warning { margin-top: 10px; }
+    .farm-delete-error { margin-top: 12px; color: #b42318 !important; font-weight: 750; }
+    .farm-delete-confirm-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
+    .farm-delete-confirm-actions button { min-width: 82px; }
+    .farm-delete-yes { border: 1px solid #9f2d27; background: #b83b34; color: #fff; }
+    .farm-delete-yes:hover { background: #982f29; }
+    .farm-delete-yes:disabled, .farm-delete-no:disabled { cursor: wait; opacity: .65; }
+    body[data-theme="dark"] .farm-delete-error { color: #ffb4aa !important; }
     .farm-setup-box { position: relative; display: block; width: min(540px, calc(100vw - 28px)); max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow: auto; padding: 0; background: var(--surface); color: var(--ink); text-align: left; }
     .farm-setup-close { position: absolute; z-index: 1; top: 14px; right: 14px; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; font-size: 20px; cursor: pointer; }
     .farm-setup-hero { position: relative; overflow: hidden; padding: 30px 34px 22px; background: radial-gradient(circle at 90% 15%, rgba(196,225,164,.28), transparent 31%), linear-gradient(135deg, #19382b, #286447 68%, #39835f); color: #fff; }
@@ -592,6 +604,8 @@
       background: transparent; color: #e7f2eb; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer;
     }
     .primary-nav button[aria-current="page"] { background: rgba(255,255,255,.16); color: #fff; }
+    .primary-nav button.farm-delete-button { border-color: rgba(255,210,205,.55); background: rgba(153,45,38,.22); color: #fff; }
+    .primary-nav button.farm-delete-button:hover { background: rgba(153,45,38,.48); }
     #mainContent[hidden], #settingsScreen[hidden] { display: none; }
     .settings-screen { max-width: 1480px; margin: 0 auto; padding: 28px 24px 60px; }
     .settings-intro { margin: 4px 0 22px; }
@@ -694,12 +708,12 @@
           <option value="">Loading farms…</option>
         </select>
       </label>
-      <button class="farm-delete-button" id="deleteFarmButton" type="button" onclick="deleteCurrentFarm()" hidden>Delete farm</button>
     </div>
     <div class="header-actions">
       <nav class="primary-nav" aria-label="Main navigation">
         <button id="dashboardNav" type="button" aria-current="page" onclick="showPage('dashboard')">Dashboard</button>
         <button id="settingsNav" type="button" onclick="showPage('settings')">Settings</button>
+        <button class="farm-delete-button" id="deleteFarmButton" type="button" onclick="openFarmDeleteConfirmation()" hidden>Delete farm</button>
       </nav>
       <button class="theme-btn" id="themeToggle" type="button" onclick="toggleTheme()" aria-pressed="false">Dark mode</button>
       <button class="close-btn" onclick="confirmExit()">Close</button>
@@ -1100,6 +1114,20 @@
     </section>
   </div>
 
+  <div class="modal-overlay" id="farmDeleteConfirmOverlay" onclick="if(event.target===this) closeFarmDeleteConfirmation()">
+    <section class="modal-box farm-delete-confirm-box" role="dialog" aria-modal="true" aria-labelledby="farmDeleteConfirmTitle" aria-describedby="farmDeleteConfirmDescription">
+      <h2 id="farmDeleteConfirmTitle">Would you like to delete this farm?</h2>
+      <p class="farm-delete-name" id="farmDeleteConfirmName"></p>
+      <p id="farmDeleteConfirmDescription">This permanently deletes the farm and all of its houses, silos, readings, settings, and delivery forecasts.</p>
+      <p class="farm-delete-warning">This action cannot be undone.</p>
+      <p class="farm-delete-error" id="farmDeleteConfirmError" role="alert" hidden></p>
+      <div class="farm-delete-confirm-actions">
+        <button class="btn-lg btn-clear farm-delete-no" id="farmDeleteNoButton" type="button" onclick="closeFarmDeleteConfirmation()">No</button>
+        <button class="btn-lg farm-delete-yes" id="farmDeleteYesButton" type="button" onclick="confirmFarmDeletion()">Yes, delete farm</button>
+      </div>
+    </section>
+  </div>
+
   <!-- Add/Subtract Feed Modal -->
   <div class="modal-overlay" id="addKgModalOverlay">
     <div class="modal-box" style="max-width: 400px;">
@@ -1345,7 +1373,7 @@
       if (farm) activateFarm(farm, false);
     }
 
-    async function deleteCurrentFarm() {
+    function openFarmDeleteConfirmation() {
       if (!currentFarm || currentFarm.id === 'mango-farm' || isDeletingFarm) return;
       if (settingsIsSaving || isUpdatingData || isCreatingFarm) {
         alert('Wait for the current farm operation to finish before deleting a farm.');
@@ -1355,16 +1383,46 @@
         alert('Save the current farm’s changes before deleting it.');
         return;
       }
-      const farmToDelete = currentFarm;
-      const confirmed = window.confirm(
-        `Permanently delete "${farmToDelete.name}" and all of its houses, silos, readings, and delivery forecasts? This cannot be undone.`
-      );
-      if (!confirmed) return;
+      document.getElementById('farmDeleteConfirmName').textContent = currentFarm.name;
+      document.getElementById('farmDeleteConfirmError').hidden = true;
+      document.getElementById('farmDeleteConfirmError').textContent = '';
+      document.getElementById('farmDeleteYesButton').textContent = 'Yes, delete farm';
+      document.getElementById('farmDeleteConfirmOverlay').style.display = 'flex';
+      document.getElementById('farmDeleteNoButton').focus();
+    }
 
+    function closeFarmDeleteConfirmation() {
+      if (isDeletingFarm) return;
+      document.getElementById('farmDeleteConfirmOverlay').style.display = 'none';
+      document.getElementById('deleteFarmButton').focus();
+    }
+
+    async function confirmFarmDeletion() {
+      if (!currentFarm || currentFarm.id === 'mango-farm' || isDeletingFarm) return;
+      if (settingsIsSaving || isUpdatingData || isCreatingFarm) {
+        document.getElementById('farmDeleteConfirmError').textContent =
+          'Wait for the current farm operation to finish before deleting a farm.';
+        document.getElementById('farmDeleteConfirmError').hidden = false;
+        return;
+      }
+      if (isDirty || isUpdateUnsaved || isForecastDirty) {
+        document.getElementById('farmDeleteConfirmError').textContent =
+          'Save the current farm’s changes before deleting it.';
+        document.getElementById('farmDeleteConfirmError').hidden = false;
+        return;
+      }
+
+      const farmToDelete = currentFarm;
       const button = document.getElementById('deleteFarmButton');
+      const yesButton = document.getElementById('farmDeleteYesButton');
+      const noButton = document.getElementById('farmDeleteNoButton');
+      const errorMessage = document.getElementById('farmDeleteConfirmError');
       isDeletingFarm = true;
       button.disabled = true;
-      button.textContent = 'Deleting…';
+      yesButton.disabled = true;
+      noButton.disabled = true;
+      yesButton.textContent = 'Deleting…';
+      errorMessage.hidden = true;
       try {
         const response = await fetch(`/api/farms?farmId=${encodeURIComponent(farmToDelete.id)}`, {
           method: 'DELETE'
@@ -1383,13 +1441,17 @@
         } catch (error) {
           console.warn('Unable to update the selected farm in this browser.', error);
         }
+        document.getElementById('farmDeleteConfirmOverlay').style.display = 'none';
         await activateFarm(nextFarm, true);
         showSettingsToast(`Farm "${farmToDelete.name}" and its data were deleted.`, false);
       } catch (error) {
-        alert(`Farm could not be deleted: ${error.message}`);
+        errorMessage.textContent = `Farm could not be deleted: ${error.message}`;
+        errorMessage.hidden = false;
       } finally {
         isDeletingFarm = false;
-        button.textContent = 'Delete farm';
+        yesButton.disabled = false;
+        noButton.disabled = false;
+        yesButton.textContent = 'Yes, delete farm';
         renderFarmSelect(currentFarm ? currentFarm.id : '');
       }
     }
